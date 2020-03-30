@@ -1,11 +1,3 @@
-/*
-   IRremote: IRrecvDemo - demonstrates receiving IR codes with IRrecv
-   An IR detector/demodulator must be connected to the input RECV_PIN.
-   Version 0.1 July, 2009
-   Copyright 2009 Ken Shirriff
-   http://arcfn.com
-*/
-
 #include <IRremote.h>
 
 int RECV_PIN = 11;
@@ -14,7 +6,11 @@ IRrecv irrecv(RECV_PIN);
 
 decode_results results;
 
+// Expected message from the sender (generated randomly)
 long expected_message = 0b00000000000000000000000000000000;
+
+// Acumulative sum of the wrong bits of the transmission
+long wrong_bits;
 
 
 void setup()
@@ -32,8 +28,8 @@ void loop() {
     Serial.print("Received message: ");
     Serial.println(results.value, BIN);
 
-    int wrong_bits;
-    wrong_bits = get_wrong_bits(results.value, expected_message);
+    // Sum of all wrong bits in the transmission
+    wrong_bits += get_wrong_bits(results.value, expected_message);
 
     Serial.print("Number of wrong bits: ");
     Serial.println(wrong_bits);
@@ -49,9 +45,9 @@ void loop() {
 // Argumnents:
 // - input_message: The received message you actually want to count the errors.
 // - expected_message: The expected received message
-int get_wrong_bits(long expected_msg, long received_msg)
+long get_wrong_bits(long expected_msg, long received_msg)
 {
-  int count = 0;
+  long count = 0;
 
   // The messages are 32 bits max.
   for (int i = 0; i < 32; i++) {
