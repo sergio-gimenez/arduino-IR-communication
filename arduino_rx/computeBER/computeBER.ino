@@ -12,6 +12,11 @@ long expected_message = 0b00000000000000000000000000000000;
 // Acumulative sum of the wrong bits of the transmission
 long wrong_bits;
 
+// Total number of messages received
+int tx_count;
+
+long get_wrong_bits(long expected_msg, long received_msg);
+
 
 void setup()
 {
@@ -24,17 +29,23 @@ void setup()
 }
 
 void loop() {
+  
   if (irrecv.decode(&results)) {
     Serial.print("Received message: ");
     Serial.println(results.value, BIN);
+
+    tx_count++;
 
     // Sum of all wrong bits in the transmission
     wrong_bits += get_wrong_bits(results.value, expected_message);
 
     Serial.print("Number of wrong bits: ");
     Serial.println(wrong_bits);
+    Serial.print("Number of messages received: ");
+    Serial.println(tx_count);
 
 
+  
     irrecv.resume(); // Receive the next value
   }
   delay(100);
