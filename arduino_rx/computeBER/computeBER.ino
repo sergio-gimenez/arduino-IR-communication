@@ -1,5 +1,9 @@
 #include <IRremote.h>
 
+
+// Timeout for the BER computation in order to know the last message
+#define timeout 10000
+
 int RECV_PIN = 11;
 
 IRrecv irrecv(RECV_PIN);
@@ -15,7 +19,15 @@ long wrong_bits;
 // Total number of messages received
 int tx_count;
 
+// Timestamp for the last received message
+int last_message_timestamp = 0;
+
+
+
+
 long get_wrong_bits(long expected_msg, long received_msg);
+
+
 
 
 void setup()
@@ -29,7 +41,7 @@ void setup()
 }
 
 void loop() {
-  
+
   if (irrecv.decode(&results)) {
     Serial.print("Received message: ");
     Serial.println(results.value, BIN);
@@ -44,9 +56,28 @@ void loop() {
     Serial.print("Number of messages received: ");
     Serial.println(tx_count);
 
+    // Start the timeout
+    last_message_timestamp = millis();
 
-  
     irrecv.resume(); // Receive the next value
+  }
+
+  // Check if the timeout is over
+
+  //  Serial.print("timestamp - millis = ");
+  //  Serial.println(aux);
+  //  Serial.print("timestamp = ");
+  //  Serial.println(last_message_timestamp);
+  //  Serial.print("timeout = ");
+  //  Serial.println(timeout);
+
+  unsigned int time_elapsed = millis() - last_message_timestamp;
+  Serial.print("Time elapsed = ");
+  Serial.println(time_elapsed);
+  if (time_elapsed > timeout) {
+
+    Serial.println("Transmission is over!");
+    time_elapsed = 0;
   }
   delay(100);
 }
