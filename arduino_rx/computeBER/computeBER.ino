@@ -2,7 +2,7 @@
 
 
 // Timeout for the BER computation in order to know the last message
-#define timeout 10000
+#define timeout 5000
 
 int RECV_PIN = 11;
 
@@ -19,6 +19,9 @@ long wrong_bits;
 // Total number of messages received
 int tx_count;
 
+// Flag to know when the transmission starts
+boolean tx_started = false;
+
 // Timestamp for the last received message
 int last_message_timestamp = 0;
 
@@ -26,8 +29,6 @@ int last_message_timestamp = 0;
 
 
 long get_wrong_bits(long expected_msg, long received_msg);
-
-
 
 
 void setup()
@@ -43,6 +44,7 @@ void setup()
 void loop() {
 
   if (irrecv.decode(&results)) {
+    tx_started = true;
     Serial.print("Received message: ");
     Serial.println(results.value, BIN);
 
@@ -63,21 +65,18 @@ void loop() {
   }
 
   // Check if the timeout is over
-
-  //  Serial.print("timestamp - millis = ");
-  //  Serial.println(aux);
-  //  Serial.print("timestamp = ");
-  //  Serial.println(last_message_timestamp);
-  //  Serial.print("timeout = ");
-  //  Serial.println(timeout);
-
   unsigned int time_elapsed = millis() - last_message_timestamp;
-  Serial.print("Time elapsed = ");
-  Serial.println(time_elapsed);
-  if (time_elapsed > timeout) {
+  if ((time_elapsed > timeout) && tx_started) {
 
-    Serial.println("Transmission is over!");
+    double normalize = 32 * tx_count;
+    double BER = wrong_bits / normalize;
+    Serial.print("Average BER for the transmission: ");
+    Serial.println(BER);
+
+    tx_started = false;
     time_elapsed = 0;
+    tx_count = 0;
+    wrong_bits = 0;
   }
   delay(100);
 }
