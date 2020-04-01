@@ -74,7 +74,7 @@ void loop() {
     Serial.println(BER);
 
     tx_started = false;
-    time_elapsed = 0;
+    time_elapsed = 0; 
     tx_count = 0;
     wrong_bits = 0;
   }
