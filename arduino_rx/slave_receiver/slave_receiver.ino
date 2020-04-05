@@ -73,7 +73,6 @@ void receiveEvent(int howMany) {
     i += 8;
 
   } if (isEOT) {
-    Serial.println("Im in the else :)");
     msg = 0;
     count = 0;
     i = 0;
