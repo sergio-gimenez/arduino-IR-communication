@@ -17,7 +17,7 @@ int count;
 //unsigned long rbuf[4] = {170, 170, 170, 170};
 unsigned long rbuf[5];
 
-int checksum;
+int rx_checksum, computed_checksum;
 
 unsigned long msg;
 
@@ -53,33 +53,23 @@ void receiveEvent(int howMany) {
   Serial.println(count);
   Serial.println(rbuf[count]);         // print the integer
 
-
   if (count < 5) {
-
     if (!isChecksumComing) {
-
       msg |= rbuf[i / 8] << i;
-
-      Serial.print("Shifted = ");
-      Serial.println(msg, HEX);
-
-      Serial.print("i/8 =");
-      Serial.println(i / 8);
 
       Serial.print("i =");
       Serial.println(i);
 
+      Serial.print("i/8 =");
+      Serial.println(i / 8);
     }
 
     if (count == 3) {
-      Serial.println("\n\nEOT\n\n");
       isChecksumComing = true;
     }
 
     if (isChecksumComing && count == 4) {
-      checksum = rbuf[count];
-      Serial.print("\nChecksum is: ");
-      Serial.println(checksum);
+      rx_checksum = rbuf[count];
       isEOT = true;
     }
 
@@ -87,11 +77,25 @@ void receiveEvent(int howMany) {
     i += 8;
 
   } if (isEOT) {
+    Serial.print("Received message = ");
+    Serial.println(msg, HEX);
+    Serial.print("\nReceived checksum is: ");
+    Serial.println(rx_checksum);
+
+    for (int i = 0; i < 4; i++) {
+      computed_checksum += rbuf[i];
+    }
+    computed_checksum = computed_checksum & 0xff;
+    Serial.print("Computed checksum is: ");
+    Serial.println(computed_checksum);
     msg = 0;
     count = 0;
     i = 0;
     isEOT = false;
     isChecksumComing = false;
+    computed_checksum = 0;
   }
+
+
 
 }
