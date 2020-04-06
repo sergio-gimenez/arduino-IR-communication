@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     // Write generated member in file
     FILE *file;
-    file = fopen("expected_message","w");
+    file = fopen("expected_message.txt","w");
     fprintf(file, "%u", rand_msg);
     fclose(file);
 
