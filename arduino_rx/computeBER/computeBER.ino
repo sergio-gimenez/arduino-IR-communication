@@ -1,8 +1,12 @@
 #include <IRremote.h>
+#include <Wire.h>
 
 
 // Timeout for the BER computation in order to know the last message
 #define timeout 5000
+
+
+// IR VARIABLES \\
 
 int RECV_PIN = 11;
 
@@ -26,7 +30,21 @@ boolean tx_started = false;
 int last_message_timestamp = 0;
 
 
+// I2C variables \\
 
+int i2c_bytes_count;
+
+unsigned long rbuf[5];
+
+int rx_checksum, computed_checksum;
+
+unsigned long msg;
+
+boolean isEOT = false;
+
+boolean isChecksumComing = false;
+
+int offset;
 
 long get_wrong_bits(long expected_msg, long received_msg);
 
@@ -39,24 +57,27 @@ void setup()
   Serial.println("Enabling IRin");
   irrecv.enableIRIn(); // Start the receiver
   Serial.println("Enabled IRin");
+  
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event
 }
 
 void loop() {
 
   if (irrecv.decode(&results)) {
     tx_started = true;
-    Serial.print("Received message: ");
-    Serial.println(results.value, BIN);
+    Serial.print("IR Received message: ");
+    Serial.println(results.value, HEX);
 
     tx_count++;
 
     // Sum of all wrong bits in the transmission
     wrong_bits += get_wrong_bits(results.value, expected_message);
 
-    Serial.print("Number of wrong bits: ");
-    Serial.println(wrong_bits);
-    Serial.print("Number of messages received: ");
-    Serial.println(tx_count);
+    //Serial.print("Number of wrong bits: ");
+    //Serial.println(wrong_bits);
+    //Serial.print("Number of messages received: ");
+    //Serial.println(tx_count);
 
     // Start the timeout
     last_message_timestamp = millis();
@@ -74,7 +95,7 @@ void loop() {
     Serial.println(BER);
 
     tx_started = false;
-    time_elapsed = 0; 
+    time_elapsed = 0;
     tx_count = 0;
     wrong_bits = 0;
   }
@@ -99,7 +120,65 @@ long get_wrong_bits(long expected_msg, long received_msg)
       count++;
     }
   }
-
   return count;
+}
 
+
+// Function that executes whenever data is received from master
+// This function is registered as an event, see setup()
+void receiveEvent(int howMany) {
+
+  // Received int
+  rbuf[i2c_bytes_count] = Wire.read();    
+  //Serial.print("Received byte ");
+  //Serial.println(i2c_bytes_count);
+  //Serial.println(rbuf[i2c_bytes_count]);         
+
+  // Count for the first 5 bytes since packet length is 5 (msg + cheksum)
+  if (i2c_bytes_count < 5) {
+    if (!isChecksumComing) {
+      msg |= rbuf[offset / 8] << offset;
+
+      //Serial.print("offset =");
+      //Serial.println(offset);
+
+      //Serial.print("offset/8 =");
+      //Serial.println(offset / 8);
+    }
+
+    if (i2c_bytes_count == 3) {
+      isChecksumComing = true;
+    }
+
+    if (isChecksumComing && i2c_bytes_count == 4) {
+      rx_checksum = rbuf[i2c_bytes_count];
+      isEOT = true;
+    }
+
+    i2c_bytes_count ++;
+    offset += 8;
+
+  } if (isEOT) {
+    Serial.print("I2C Received message = ");
+    Serial.println(msg, HEX);
+    //Serial.print("\nReceived checksum is: ");
+    //Serial.println(rx_checksum);
+
+    for (int i = 0; i < 4; i++) {
+      computed_checksum += rbuf[i];
+    }
+    computed_checksum = computed_checksum & 0xff;
+    //Serial.print("Computed checksum is: ");
+    //Serial.println(computed_checksum);
+
+    if (computed_checksum == rx_checksum){
+      //Serial.println("I2C Message is correct\n");
+    }
+    msg = 0;
+    i2c_bytes_count = 0;
+    offset = 0;
+    isEOT = false;
+    isChecksumComing = false;
+    computed_checksum = 0;
+  }
 }
