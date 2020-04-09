@@ -6,7 +6,8 @@ bus = SMBus(1) # indicates /dev/ic2-1
 msg_bytes = [0,0,0,0,0] 
 
 f = open("expected_message.txt", "rb")
-expected_message = int(f.read())
+
+expected_message = int(f.read(), base=2)
 
 for i in range(5):
     msg_bytes[i] = expected_message >> (8*i) & 0xff
