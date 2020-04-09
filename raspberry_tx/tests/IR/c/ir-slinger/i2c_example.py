@@ -20,5 +20,5 @@ for i in range(5):
 
 
 #bus.write_i2c_block_data(addr, 0, msg_bytes)
-print ("Message sent: "+ hex(expected_message))
+print ("i2c Message sent: "+ hex(expected_message), "("+bin(expected_message)+")")
 

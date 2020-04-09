@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     sprintf(&rand_msg[i], "%d",current_bit);
     }
 
-    printf("Random message generated: %s\n\n", rand_msg);
+    printf("IR Random message generated: %s\n\n", rand_msg);
 
     // Write generated member in file
     FILE *file;
