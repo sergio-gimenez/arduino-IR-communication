@@ -2,35 +2,24 @@
 #include <stdlib.h>
 #include <time.h>
 #include "irslinger.h"
+ 
+#define MAXCHAR 33
 
-#define RAND_MAX_32B 4294967296
+int main() {
 
-int main(int argc, char *argv[])
-{
+     // ** Get random message previously generated ** \\
 
-    // ** Random message generation ** \\
-
-    // The random number is seeded with the current time.
-    srand(time(0));
-    char rand_msg[32];
-
-    int num = (rand() % (RAND_MAX_32B + 1));
-
-    for (int i = 0; i < 32; i++){
-    // Right shift num, i times and perform bitwise AND with 1
-    int current_bit = (num >> i) & 1;
-
-    // Add the i-bit to the i-position of the array
-    sprintf(&rand_msg[i], "%d",current_bit);
+    FILE *fp;
+    char rand_msg[MAXCHAR];
+    char* filename = "expected_message.txt";
+ 
+    fp = fopen(filename, "r");
+    if (fp == NULL){
+        printf("Could not open file %s",filename);
+        return 1;
     }
-
-    printf("IR Random message generated: %s\n\n", rand_msg);
-
-    // Write generated member in file
-    FILE *file;
-    file = fopen("expected_message.txt","w");
-    fprintf(file, "%s", rand_msg);
-    fclose(file);
+    fgets(rand_msg, MAXCHAR, fp);
+    fclose(fp);
 
     // ** IR pulse generation ** \\
 
@@ -59,6 +48,6 @@ int main(int argc, char *argv[])
         sendTrailingPulse,
         rand_msg);
 
+    printf("IR message sent is %s\n\n", rand_msg);
     return 0;
 }
-
