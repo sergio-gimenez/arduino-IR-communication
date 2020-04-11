@@ -1,5 +1,6 @@
 from smbus import SMBus
 import time
+import subprocess
 
 addr = 0x8 # bus address
 bus = SMBus(1) # indicates /dev/ic2-1
@@ -14,10 +15,16 @@ for i in range(5):
         for j in range(4):
             msg_bytes[4] += msg_bytes[j]
         msg_bytes[4] = msg_bytes[4] & 0xff
-
-    bus.write_byte(addr, msg_bytes[i])
-    time.sleep(0.07)
+    try:
+        #time.sleep(1)
+        bus.write_byte(addr, msg_bytes[i])
+    except IOError:
+        subprocess.call(['i2cdetect', '-y', '1'])
+        #subprocess.call(['i2cdetect', '-y', '1'])
+        print("IOError detected!!")
 
 #bus.write_i2c_block_data(addr, 0, msg_bytes)
 print ("i2c Message sent: "+ hex(expected_message), "("+bin(expected_message)+")")
+
+
 
