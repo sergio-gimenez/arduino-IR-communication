@@ -7,7 +7,7 @@
 
 int main() {
 
-     // ** Get random message previously generated ** \\
+     // ** Get random message previously generated from file ** \\
 
     FILE *fp;
     char rand_msg[MAXCHAR];

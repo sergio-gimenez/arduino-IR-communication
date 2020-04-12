@@ -30,6 +30,8 @@ boolean isChecksumComing = false;
 
 int offset;
 
+long total_i2c_pkts = 0;
+
 
 void setup()
 {
@@ -57,6 +59,7 @@ void loop() {
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
+  total_i2c_pkts++;
 
   // Received int
   rbuf[i2c_bytes_count] = Wire.read();
@@ -111,5 +114,7 @@ void receiveEvent(int howMany) {
     isEOT = false;
     isChecksumComing = false;
     computed_checksum = 0;
+    Serial.print("Total i2c packets = ");
+    Serial.println(total_i2c_pkts/5);
   }
 }

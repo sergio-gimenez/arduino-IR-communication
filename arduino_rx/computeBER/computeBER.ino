@@ -48,18 +48,19 @@ int offset;
 
 long get_wrong_bits(long expected_msg, long received_msg);
 
+long rcv_i2c_pkts;
 
 void setup()
 {
   Serial.begin(9600);
+  
   // In case the interrupt driver crashes on setup, give a clue
   // to the user what's going on.
-  Serial.println("Enabling IRin");
-  irrecv.enableIRIn(); // Start the receiver
-  Serial.println("Enabled IRin");
-  
+  irrecv.enableIRIn();           // Start the receiver
   Wire.begin(8);                // join i2c bus with address #8
   Wire.onReceive(receiveEvent); // register event
+  Serial.println("Enabled IRin and I2C bus");
+
 }
 
 void loop() {
@@ -81,18 +82,21 @@ void loop() {
 
     // Start the timeout
     last_message_timestamp = millis();
-
+    //Serial.print("Expected message = ");
+    //Serial.println(expected_message, HEX);
     irrecv.resume(); // Receive the next value
   }
 
   // Check if the timeout is over
   unsigned int time_elapsed = millis() - last_message_timestamp;
   if ((time_elapsed > timeout) && tx_started) {
-
+    ;
     double normalize = 32 * tx_count;
     double BER = wrong_bits / normalize;
     Serial.print("Average BER for the transmission: ");
-    Serial.println(BER);
+    Serial.println(BER, 20);
+    Serial.print("Received i2c pckts: ");
+    Serial.println(rcv_i2c_pkts/5);  
 
     tx_started = false;
     time_elapsed = 0;
@@ -128,11 +132,13 @@ long get_wrong_bits(long expected_msg, long received_msg)
 // This function is registered as an event, see setup()
 void receiveEvent(int howMany) {
 
+  rcv_i2c_pkts++;
+  
   // Received int
-  rbuf[i2c_bytes_count] = Wire.read();    
+  rbuf[i2c_bytes_count] = Wire.read();
   //Serial.print("Received byte ");
   //Serial.println(i2c_bytes_count);
-  //Serial.println(rbuf[i2c_bytes_count]);         
+  //Serial.println(rbuf[i2c_bytes_count]);
 
   // Count for the first 5 bytes since packet length is 5 (msg + cheksum)
   if (i2c_bytes_count < 5) {
@@ -171,14 +177,16 @@ void receiveEvent(int howMany) {
     //Serial.print("Computed checksum is: ");
     //Serial.println(computed_checksum);
 
-    if (computed_checksum == rx_checksum){
+    if (computed_checksum == rx_checksum) {
       //Serial.println("I2C Message is correct\n");
+      expected_message = msg;
     }
+    
     msg = 0;
     i2c_bytes_count = 0;
     offset = 0;
     isEOT = false;
     isChecksumComing = false;
-    computed_checksum = 0;
+    computed_checksum = 0;  
   }
 }
