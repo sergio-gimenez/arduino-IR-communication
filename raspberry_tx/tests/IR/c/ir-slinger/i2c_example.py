@@ -1,5 +1,6 @@
 from smbus import SMBus
 import time
+import subprocess
 
 addr = 0x8 # bus address
 bus = SMBus(1) # indicates /dev/ic2-1
@@ -22,4 +23,6 @@ for i in range(5):
 
 #bus.write_i2c_block_data(addr, 0, msg_bytes)
 print ("i2c Message sent: "+ hex(expected_message), "("+bin(expected_message)+")")
+
+
 
