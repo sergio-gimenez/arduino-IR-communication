@@ -105,6 +105,8 @@ void loop() {
     Serial.println(BER, 20);
     Serial.print("Received i2c pckts: ");
     Serial.println(rcv_i2c_pkts / 5);
+    Serial.print("Total time elapsed: ");
+    Serial.println(millis()/1000 - 5);
 
     tx_started = false;
     time_elapsed = 0;
