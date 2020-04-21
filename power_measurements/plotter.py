@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import matplotlib.pyplot as plt
 import csv
 
@@ -10,9 +12,6 @@ out = open("out.csv", "r").read().splitlines()
 for i in out:
     voltage.append(float(i.split(",")[0]))
     time.append(int(i.split(",")[1]))
-
-
-#import pdb; pdb.set_trace()
 
 plt.plot(time,voltage)
 plt.xlabel('Time [s]')
