@@ -1,18 +1,32 @@
-int pd = 2;                    //Photodiode to digital pin 2
-int buzz = 13;                 //piezo buzzer to digital pin 13
+
 int senRead = 0;               //Readings from sensor to analog pin 0
-int limit = 850;               //Threshold range of an obstacle
+int has_tx_started = false;
+unsigned int start_time;
+
 void setup()
 {
-  //  pinMode(pd, OUTPUT);
-  //  pinMode(buzz, OUTPUT);
-  //  digitalWrite(pd, HIGH);      //supply 5 volts to photodiode
-  //  digitalWrite(buzz, LOW);     //set the buzzer in off mode (initial condition)
-  Serial.begin(9600);          //setting serial monitor at a default baund rate of 9600
+  Serial.begin(9600);    //setting serial monitor at a default baund rate of 9600
+  
+  // In case the interrupt driver crashes on setup, give a clue
+  // to the user what's going on.
+  Serial.println("Waiting for an IR packet");
+
 }
+
 void loop()
 {
+
   int val = analogRead(senRead); //variable to store values from the photodiode
-  Serial.println(val);          // prints the values from the sensor in serial monitor
-  delay(100);
+
+  if (val > 300) {
+    has_tx_started = true;
+    start_time = millis();    
+    
+    while (has_tx_started) {
+      Serial.print(val);          // prints the values from the sensor in serial monitor
+      Serial.print(";");
+      Serial.println(millis() - start_time);
+      val = analogRead(senRead); //variable to store values from the photodiode
+    }
+  }
 }
