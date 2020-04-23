@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:uno",
+    "sketch": "power_measurements/analog_read/analog_read.ino",
+    "port": "/dev/ttyACM0",
+    "programmer": "AVR ISP"
+}
