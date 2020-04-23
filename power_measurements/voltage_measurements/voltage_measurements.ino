@@ -10,6 +10,12 @@ int rx_preamp_pin = 2;
 int rx_preamp;
 float v_rx_preamp;
 
+
+int tx_pin = 1;
+int tx;
+float v_tx;
+
+
 void setup() {
   Serial.begin(9600);
 
@@ -23,6 +29,7 @@ void setup() {
 void loop() {
   rx_amp = analogRead(rx_amp_pin);
   rx_preamp = analogRead(rx_preamp_pin);
+  tx = analogRead(tx);
 
   // Start program if message received and while transmission is not over
   if ((rx_amp > 300) && !isEOT) {
@@ -35,6 +42,7 @@ void loop() {
       // Convert quantized value measured from arduino to mV
       v_rx_amp = (float(rx_amp) * 5 / 1024) * 1000;
       v_rx_preamp = (float(rx_preamp) * 5 / 1024) * 1000;
+      v_tx = (float(tx) * 5 / 1024) * 1000;
 
       // TODO program function
       // Print stuff in pseudo-csv format
@@ -42,6 +50,8 @@ void loop() {
       Serial.print(",");
       Serial.print(v_rx_preamp);
       Serial.print(",");
+      Serial.print(v_tx);
+      Serial.print(",");      
       Serial.println(millis() - start_time);
 
       rx_amp = analogRead(rx_amp_pin);
