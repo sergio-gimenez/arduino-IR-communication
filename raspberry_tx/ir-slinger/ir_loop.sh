@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {0..10000}
+for i in {0..500}
 do
 	./generate_rand
 	#python i2c_example.py

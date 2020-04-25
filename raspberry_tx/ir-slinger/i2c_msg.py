@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.7
+
 from smbus import SMBus
 import time
 import subprocess
