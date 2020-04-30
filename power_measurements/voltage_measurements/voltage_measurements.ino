@@ -10,7 +10,6 @@ int rx_preamp_pin = 2;
 int rx_preamp;
 float v_rx_preamp;
 
-
 int tx_pin = 1;
 int tx;
 float v_tx;
