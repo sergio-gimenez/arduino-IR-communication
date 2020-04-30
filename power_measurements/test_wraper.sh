@@ -8,8 +8,11 @@ rm $OUTPUT_FILE
 
 (tail -f /dev/ttyACM0 > out.csv) &
 
+# TODO Open ssh and send data
+# ssh pi@192.168.1.25 -i ~/.ssh/sergio-laptop.key
+
 SECONDS=0
-while [ $SECONDS -le 8 ]
+while [ $SECONDS -le 10 ]
 do
   echo "Waiting for transmission to end"
 done
