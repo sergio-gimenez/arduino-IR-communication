@@ -9,7 +9,7 @@ rm $OUTPUT_FILE
 
 # Read the serial port and print the msgs on a file in another thread
 (tail -f $SERIAL_PORT > $OUTPUT_FILE) &
-disown
+disown # Make the kill command quiet
 
 # TODO Open ssh and send data
 # ssh -t pi@192.168.1.8 -i ~/.ssh/sergio-laptop.key "sudo /home/pi/tfg/src/raspberry_tx/ir-slinger/send_IR_signal"
