@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
-import csv
+import sys
 
 time = []
 v_rx_amp = []
@@ -12,10 +12,15 @@ v_tx = []
 # Each position has: [v_rx_amp, v_rx_preamp, v_tx, t]
 out = open("out.csv", "r").read().splitlines()
 for i in out:
-    v_rx_amp.append(float(i.split(",")[0]))
-    v_rx_preamp.append(float(i.split(",")[1]))
-    v_tx.append(float(i.split(",")[2]))
-    time.append(int(i.split(",")[3]))
+    try:
+        v_rx_amp.append(float(i.split(",")[0]))
+        v_rx_preamp.append(float(i.split(",")[1]))
+        v_tx.append(float(i.split(",")[2]))
+        time.append(int(i.split(",")[3]))
+    except (ValueError, IndexError):
+        print("Some value could not be properly read from the output file.",
+              "Maybe the baudrate is not properly set?")
+        sys.exit(1)
 
 # Plot formatting
 plt.plot(time, v_rx_amp, label="Amplified Rx V")
