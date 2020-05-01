@@ -28,7 +28,7 @@ void setup() {
 void loop() {
   rx_amp = analogRead(rx_amp_pin);
   rx_preamp = analogRead(rx_preamp_pin);
-  tx = analogRead(tx);
+  tx = analogRead(tx_pin);
 
   // Start program if message received and while transmission is not over
   if ((rx_amp > 300) && !isEOT) {
@@ -50,12 +50,13 @@ void loop() {
       Serial.print(v_rx_preamp);
       Serial.print(",");
       Serial.print(v_tx);
-      Serial.print(",");      
+      Serial.print(",");
       Serial.println(millis() - start_time);
 
       rx_amp = analogRead(rx_amp_pin);
       rx_preamp = analogRead(rx_preamp_pin);
-
+      tx = analogRead(tx_pin);
+      
       // Expected 6 IR messages from raspi
       // That's enough time to the messages to arrive. If they don't, something happened
       if ((millis() - start_time) > 4500) {
