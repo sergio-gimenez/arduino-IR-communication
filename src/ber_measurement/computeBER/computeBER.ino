@@ -3,10 +3,11 @@
 
 
 #define LAST_IR_MESSAGE_TIMEOUT 5000
-#define I2C_PKT_LENGTH 5
+#define I2C_PKT_LENGTH 4
+#define I2C_BUS_ADDRESS 8
 
-// TODO add verbose
-
+// Set in false for not extra information. i.e when data logging
+boolean verbose = true;
 
 // IR VARIABLES \\
 
@@ -25,35 +26,30 @@ int last_message_timestamp = 0;
 // I2C variables \\
 
 int i2c_bytes_count;
-unsigned long i2c_rbuf[5];
+unsigned long i2c_rbuf[I2C_PKT_LENGTH];
 unsigned long msg;
 boolean isEOT = false;
 int offset;
 long rcv_i2c_pkts;
 boolean isI2CinBuf = false;
 
-boolean isIRinBuf = false; //TODO I think it can be removed
-
-// TODO Remove checksum stuff since it is not needed
-int rx_checksum, computed_checksum;
-boolean isChecksumComing = false;
+//boolean isIRinBuf = false; //TODO I think it can be removed
 
 
 void setup()
 {
   Serial.begin(38400);
 
-  // In case the interrupt driver crashes on setup, give a clue to the user what's going on.
   irrecv.enableIRIn();
 
-  // join i2c bus with address #8
-  Wire.begin(8);
+  // join i2c bus
+  Wire.begin(I2C_BUS_ADDRESS);
 
   // register event
   Wire.onReceive(handle_i2c_event);
-  
-  Serial.println("Enabled IRin and I2C bus");
 
+  // In case the interrupt driver crashes on setup, give a clue to the user what's going on.
+  Serial.println("Enabled IRin and I2C bus");
 }
 
 void loop() {
@@ -61,11 +57,11 @@ void loop() {
   if (irrecv.decode(&results) && isI2CinBuf) {
     Serial.println("i2c packet is in buffer");
     has_tx_started = true;
-    
+
     Serial.print("IR Received message: ");
     Serial.println(results.value, HEX);
     Serial.println("\n");
-
+    
     received_msgs_count++;
 
     // Sum of all wrong bits in the transmission
@@ -82,15 +78,15 @@ void loop() {
   // Check if the timeout is over
   unsigned int time_elapsed = millis() - last_message_timestamp;
   if (((time_elapsed > LAST_IR_MESSAGE_TIMEOUT) && has_tx_started)) {
-    
+
     double BER = wrong_bits_sum / (32 * received_msgs_count);
-    
+
     Serial.print("Average BER for the transmission: ");
     Serial.println(BER, 20);
     Serial.print("Received i2c pckts: ");
     Serial.println(rcv_i2c_pkts / I2C_PKT_LENGTH);
     Serial.print("Total time elapsed: ");
-    Serial.println(millis() / (1000 - (LAST_IR_MESSAGE_TIMEOUT/1000)));
+    Serial.println(millis() / (1000 - (LAST_IR_MESSAGE_TIMEOUT / 1000)));
 
     has_tx_started = false;
     time_elapsed = 0;
@@ -126,22 +122,15 @@ long get_wrong_bits(long expected_msg, long received_msg)
 void handle_i2c_event() {
 
   rcv_i2c_pkts++;
-
-  // Received int
+  
   i2c_rbuf[i2c_bytes_count] = Wire.read();
 
-  // Count for the first 5 bytes since packet length is 5 (msg + cheksum)
-  if (i2c_bytes_count < 5) {
-    if (!isChecksumComing) {
-      msg |= i2c_rbuf[offset / 8] << offset;
-    }
+  // TODO I could wrap the bit shifting in a function to make it more readable
+  if (i2c_bytes_count < I2C_PKT_LENGTH) {
 
-    if (i2c_bytes_count == 3) {
-      isChecksumComing = true;
-    }
+    msg |= i2c_rbuf[offset / 8] << offset;
 
-    if (isChecksumComing && i2c_bytes_count == 4) {
-      rx_checksum = i2c_rbuf[i2c_bytes_count];
+    if (i2c_bytes_count == (I2C_PKT_LENGTH - 1)) {
       isEOT = true;
     }
 
@@ -157,14 +146,7 @@ void handle_i2c_event() {
       Serial.print("I2C Received message = ");
       Serial.println(msg, HEX);
 
-      for (int i = 0; i < 4; i++) {
-        computed_checksum += i2c_rbuf[i];
-      }
-      computed_checksum = computed_checksum & 0xff;
-
-      if (computed_checksum == rx_checksum) {
-        expected_message = msg;
-      }
+      expected_message = msg;
     }
 
     // End of i2c transmission. Reinitialize variables
@@ -172,9 +154,6 @@ void handle_i2c_event() {
     i2c_bytes_count = 0;
     offset = 0;
     isEOT = false;
-    isChecksumComing = false;
-    computed_checksum = 0;
     isI2CinBuf = true;
-
   }
 }
