@@ -11,6 +11,10 @@
 
 #include <Wire.h>
 
+#define LAST_IR_MESSAGE_TIMEOUT 5000
+#define I2C_PKT_LENGTH 4
+#define I2C_BUS_ADDRESS 8
+
 int i2c_bytes_count;
 
 //unsigned long rbuf[4] = {170, 170, 170, 170};
@@ -29,16 +33,12 @@ int offset;
 void setup() {
   Wire.begin(8);                // join i2c bus with address #8
   Wire.onReceive(receiveEvent); // register event
-  Serial.begin(9600);           // start serial for output
+  Serial.begin(38400);           // start serial for output
   Serial.println("Ready to receive");
 }
 
-void loop() {
-  delay(100);
-}
+void loop() { }
 
-// function that executes whenever data is received from master
-// this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
 
   // Received int
@@ -47,9 +47,7 @@ void receiveEvent(int howMany) {
   Serial.println(i2c_bytes_count);
   Serial.println(rbuf[i2c_bytes_count]);         
 
-  // Count for the first 5 bytes since packet length is 5 (msg + cheksum)
-  if (i2c_bytes_count < 5) {
-    if (!isChecksumComing) {
+  if (i2c_bytes_count < I2C_PKT_LENGTH) {
       msg |= rbuf[offset / 8] << offset;
 
       Serial.print("offset =");
@@ -57,14 +55,8 @@ void receiveEvent(int howMany) {
 
       Serial.print("offset/8 =");
       Serial.println(offset / 8);
-    }
 
-    if (i2c_bytes_count == 3) {
-      isChecksumComing = true;
-    }
-
-    if (isChecksumComing && i2c_bytes_count == 4) {
-      rx_checksum = rbuf[i2c_bytes_count];
+    if (i2c_bytes_count == (I2C_PKT_LENGTH - 1)) {
       isEOT = true;
     }
 
@@ -74,19 +66,7 @@ void receiveEvent(int howMany) {
   } if (isEOT) {
     Serial.print("Received message = ");
     Serial.println(msg, HEX);
-    Serial.print("\nReceived checksum is: ");
-    Serial.println(rx_checksum);
 
-    for (int i = 0; i < 4; i++) {
-      computed_checksum += rbuf[i];
-    }
-    computed_checksum = computed_checksum & 0xff;
-    Serial.print("Computed checksum is: ");
-    Serial.println(computed_checksum);
-
-    if (computed_checksum == rx_checksum){
-      Serial.println("Message is correct\n");
-    }
     msg = 0;
     i2c_bytes_count = 0;
     offset = 0;
