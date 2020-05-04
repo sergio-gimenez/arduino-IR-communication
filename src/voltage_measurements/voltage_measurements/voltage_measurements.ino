@@ -18,7 +18,7 @@ float v_tx;
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(38400);
 
   // In case the interrupt driver crashes on setup, give a clue
   // to the user what's going on.
@@ -70,7 +70,6 @@ float convert_to_milivolts(int quantized_read_value) {
 
 void print_data_through_serial(float v_rx_amp, float v_rx_preamp, float v_tx) {
   // Print data in pseudo-csv format over Serial
-
   Serial.print(v_rx_amp);
   Serial.print(",");
   Serial.print(v_rx_preamp);
