@@ -3,21 +3,23 @@
 import matplotlib.pyplot as plt
 import sys
 
-recorded_data_filename = "out.csv"
+RECORDED_DATA_FILENAME = "out.csv"
 
 time = []
 v_rx_amp = []
 v_rx_preamp = []
 v_tx = []
 
-get_records_from_file("out.csv")
+def main():
 
-plt.plot(time, v_rx_amp, label="Amplified Rcv V")
-plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V")
-plt.plot(time, v_tx, label="V Tx from Transmitter")
+    get_records_from_file(RECORDED_DATA_FILENAME)
 
-format_plot('Time [s]', 'Voltage [mV]',
-            'IR Transmission\nReceived 6 messages (32bit each)')
+    plt.plot(time, v_rx_amp, label="Amplified Rcv V")
+    plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V")
+    plt.plot(time, v_tx, label="V Tx from Transmitter")
+
+    format_plot('Time [s]', 'Voltage [mV]',
+                'IR Transmission\nReceived 6 messages (32bit each)')
 
 
 def get_records_from_file(output_filename):
@@ -45,3 +47,6 @@ def format_plot(x_axis_label, y_axis_label, title):
     plt.grid()
     plt.legend()
     plt.show()
+
+if __name__ == "__main__":
+    main()
