@@ -10,7 +10,7 @@ v_rx_amp = []
 v_rx_preamp = []
 v_tx = []
 
-plotter.get_voltages_from_file(RECORDED_DATA_FILENAME, v_rx_amp, v_rx_preamp, v_tx, time)
+v_rx_amp, v_rx_preamp, v_tx, time = plotter.get_voltages_from_file(RECORDED_DATA_FILENAME)
 
 plt.plot(time, v_rx_amp, label="Amplified Rcv V")
 plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V")
