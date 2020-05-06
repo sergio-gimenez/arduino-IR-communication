@@ -1,3 +1,4 @@
+.vscode/
 **/expected_message.txt
 **/out.csv
-.vscode/
+**/__pycache__
