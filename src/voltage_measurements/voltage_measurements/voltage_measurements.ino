@@ -32,9 +32,8 @@ void loop() {
   rx_preamp = analogRead(rx_preamp_pin);
   tx = analogRead(tx_pin);
 
-  // Start program if message received and loop thrpugh it while transmission is not over
-  
-  if ((rx_amp > 300) && !isEOT) {
+  // Start program if message received and loop thrpugh it while transmission is not over  
+  if (((rx_amp > 300) || (tx > 150)) && !isEOT) {
     has_tx_started = true;
     start_time = millis();
 
