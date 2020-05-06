@@ -5,7 +5,7 @@ SERIAL_PORT="/dev/ttyACM0"
 TIMEOUT=7
 
 echo "Make sure arduino has been reset before the transmission!"
-rm $OUTPUT_FILE
+rm $OUTPUT_FILE 2> /dev/null
 
 # Read the serial port and print the msgs on a file in another thread
 (tail -f $SERIAL_PORT > $OUTPUT_FILE) &
