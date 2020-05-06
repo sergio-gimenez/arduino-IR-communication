@@ -13,6 +13,8 @@ def main():
 
     v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(RECORDED_DATA_FILENAME)
 
+    #import pdb; pdb.set_trace()
+
     plt.plot(time, v_rx_amp, label="Amplified Rcv V")
     plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V")
     plt.plot(time, v_tx, label="V Tx from Transmitter")
@@ -57,14 +59,10 @@ def delete_wrong_records(records):
             aux_v_tx = float(record.split(",")[2])
             aux_time = int(record.split(",")[3])
 
-            # if(isinstance(aux_v_rx_amp, float) or isinstance(aux_v_rx_preamp, float) or isinstance(aux_v_tx, float) or isinstance(aux_time, int)):
-            #     v_rx_amp.append(aux_v_rx_amp)
-            #     v_rx_preamp.append(aux_v_rx_preamp)
-            #     v_tx.append(aux_v_tx)
-            #     time.append(aux_time)
-            # else:
-            #     print("Hehe")
-            #     raise
+            v_rx_amp.append(aux_v_rx_amp)
+            v_rx_preamp.append(aux_v_rx_preamp)
+            v_tx.append(aux_v_tx)
+            time.append(aux_time)
 
         except (ValueError, IndexError, UnicodeDecodeError):
             wrongs.append(record)
