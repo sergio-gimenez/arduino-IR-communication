@@ -18,7 +18,7 @@ float v_tx;
 
 
 void setup() {
-  Serial.begin(38400);
+  Serial.begin(2000000);
 
   // In case the interrupt driver crashes on setup, give a clue
   // to the user what's going on.
