@@ -12,7 +12,7 @@ v_tx = []
 
 def main():
 
-    get_records_from_file(RECORDED_DATA_FILENAME)
+    get_voltages_from_file(RECORDED_DATA_FILENAME, v_rx_amp, v_rx_preamp, v_tx, time)
 
     plt.plot(time, v_rx_amp, label="Amplified Rcv V")
     plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V")
@@ -22,7 +22,7 @@ def main():
                 'IR Transmission\nReceived 6 messages (32bit each)')
 
 
-def get_records_from_file(output_filename):
+def get_voltages_from_file(output_filename, v_rx_amp, v_rx_preamp, v_tx, time):
     # Read the file and save it in an array without the \n character
     # Each position has: [v_rx_amp, v_rx_preamp, v_tx, t]
     records = open(output_filename, "r").read().splitlines()
