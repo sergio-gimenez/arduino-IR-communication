@@ -3,17 +3,17 @@
 import matplotlib.pyplot as plt
 import sys
 
-RECORDED_DATA_FILENAME = "out.csv"
 
 def main():
+
+    RECORDED_DATA_FILENAME = "out.csv"
+
     time = []
     v_rx_amp = []
     v_rx_preamp = []
-    v_tx = []    
+    v_tx = []
 
     v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(RECORDED_DATA_FILENAME)
-
-    #import pdb; pdb.set_trace()
 
     plt.plot(time, v_rx_amp, label="Amplified Rcv V")
     plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V")
@@ -25,7 +25,6 @@ def main():
 
 def get_voltages_from_file(output_filename):
     # Read the file and save it in an array without the \n character
-    # Each position has: [v_rx_amp, v_rx_preamp, v_tx, t]
     records = open(output_filename, "r").read().splitlines()
     return delete_wrong_records(records)
 
@@ -42,16 +41,18 @@ def format_plot(x_axis_label, y_axis_label, title):
 
 
 def check_if_record_is_correct(str_v_rx_amp, str_v_rx_preamp, str_v_tx, str_time):
-    pass     
+    pass
 
-def delete_wrong_records(records):    
+
+def delete_wrong_records(records):
     v_rx_amp = []
     v_rx_preamp = []
     v_tx = []
     time = []
     wrongs = []
-    
+
     for record in records:
+        # Each position has: [v_rx_amp, v_rx_preamp, v_tx, t]
         # If the format is not [float, float, float, int] discard the record
         try:
             aux_v_rx_amp = float(record.split(",")[0])
@@ -66,12 +67,12 @@ def delete_wrong_records(records):
 
         except (ValueError, IndexError, UnicodeDecodeError):
             wrongs.append(record)
-
             print("Some value could not be properly read from the output file.",
-                 "Maybe the baudrate is not properly set?")
+                  "Maybe the baudrate is not properly set?")
             continue
 
     return v_rx_amp, v_rx_preamp, v_tx, time
+
 
 if __name__ == "__main__":
     main()
