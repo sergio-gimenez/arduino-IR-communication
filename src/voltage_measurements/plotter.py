@@ -6,7 +6,6 @@ import sys
 def main():
 
     RECORDED_DATA_FILENAME = "out.csv"
-
     time = []
     v_rx_amp = []
     v_rx_preamp = []
@@ -15,15 +14,23 @@ def main():
     v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(
         RECORDED_DATA_FILENAME)
 
-    # Plot first message
     rx_messages, tx_messages, time_acc = get_IR_messages(v_rx_preamp, v_tx, time)
 
-    plt.plot(time_acc[0], rx_messages[0], label="Messages pre-amp", color='orange')
+    #plt.plot(time_acc[0], rx_messages[0], label="Messages pre-amp", color='orange')
+    #plt.plot(time_acc[1], rx_messages[1], label="Messages pre-amp", color='red')
+    #format_plot('Time [s]', 'Voltage [mV]', " ")
 
-    plt.plot(time_acc[1], rx_messages[1], label="Messages pre-amp", color='red')
+    non_zeros_rx = remove_PWM_gaps(rx_messages)
+    non_zeros_tx = remove_PWM_gaps(tx_messages)
 
-    format_plot('Time [s]', 'Voltage [mV]',
-                'IR Transmission\nReceived 6 messages (32bit each)')
+    avg_rx_means = compute_avg(non_zeros_rx)
+    avg_tx_means = compute_avg(non_zeros_tx)
+
+
+
+
+
+
 
 
 def get_voltages_from_file(output_filename):
@@ -70,14 +77,15 @@ def delete_wrong_records(records):
 
         except (ValueError, IndexError, UnicodeDecodeError):
             wrongs.append(record)
-            print("Some value could not be properly read from the output file.",
-                  "Maybe the baudrate is not properly set?")
+            print("Some recorded value was not properly formatted. However, an attempt has been made to process the data despite wrong recordings.",
+                  "\nMaybe the baudrate is not properly set or too high?")
             continue
 
     return v_rx_amp, v_rx_preamp, v_tx, time
 
 
 def get_IR_messages(v_rx_preamp, v_tx, time):
+
     MSG_THRESHOLD = 150
     MSG_DURATION = 100
 
@@ -92,9 +100,9 @@ def get_IR_messages(v_rx_preamp, v_tx, time):
     i = 0
     while i < (len(time)):
 
+        # Remove noise and only get IR messages
         if (v_rx_preamp[i] > MSG_THRESHOLD):
             start_of_msg = i
-            #import pdb; pdb.set_trace()
 
             while(i < (start_of_msg + MSG_DURATION)):
                 IR_rx_msg.append(v_rx_preamp[i])
@@ -106,6 +114,7 @@ def get_IR_messages(v_rx_preamp, v_tx, time):
             tx_messages.append(IR_tx_msg)
             time_acc.append(msg_time)
 
+            # Remove recorded message because it is already saved in rx_messages.
             IR_rx_msg = []
             IR_tx_msg = []
             msg_time = []
@@ -114,9 +123,34 @@ def get_IR_messages(v_rx_preamp, v_tx, time):
 
         i += 1
 
-    import pdb; pdb.set_trace()
-
     return rx_messages, tx_messages, time_acc
+
+def remove_PWM_gaps(IR_messages):
+
+    no_zeros_msgs = []
+
+    for msg in IR_messages:
+        for value in msg:
+            if(value < 0):
+                msg.remove(value)
+        
+        no_zeros_msgs.append(msg)
+    
+    return no_zeros_msgs
+
+
+def compute_avg(no_zeros_msgs):
+    sum = 0
+    means = []
+    for msg in no_zeros_msgs:
+        for value in msg:
+            sum += value
+        means.append(sum / len(msg))    
+    
+    return means
+
+def plot_means(means, IR_transmission, time):
+    pass
 
 
 if __name__ == "__main__":
