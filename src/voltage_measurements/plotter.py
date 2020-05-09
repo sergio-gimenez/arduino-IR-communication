@@ -3,6 +3,9 @@
 import matplotlib.pyplot as plt
 import sys
 
+MSG_NOISE_THRESHOLD = 150 # In mV
+MSG_DURATION = 100 # In milliseconds
+
 def main():
 
     RECORDED_DATA_FILENAME = "out.csv"
@@ -15,22 +18,19 @@ def main():
         RECORDED_DATA_FILENAME)
 
     rx_messages, time_acc = get_IR_messages(v_rx_preamp, time)
-    tx_messages = get_IR_messages(v_tx, time)
+    tx_messages, time_acce = (get_IR_messages(v_tx, time))
 
-    plt.plot(time_acc[0], rx_messages[0], label="Messages pre-amp", color='orange')
-    plt.plot(time_acc[1], rx_messages[1], label="Messages pre-amp", color='red')
-    format_plot('Time [s]', 'Voltage [mV]', " ")
-
+    #plt.plot(time_acc[0], rx_messages[0], label="Messages pre-amp", color='orange')
+    #plt.plot(time_acc[1], rx_messages[1], label="Messages pre-amp", color='red')
+    #format_plot('Time [s]', 'Voltage [mV]', " ")
+  
     non_zeros_rx = remove_PWM_gaps(rx_messages)
+    
     non_zeros_tx = remove_PWM_gaps(tx_messages)
 
     avg_rx_means = compute_avg(non_zeros_rx)
-    avg_tx_means = compute_avg(non_zeros_tx)
-
-
-
-
-
+    avg_tx_means = compute_avg(non_zeros_tx)  
+    
 
 def get_voltages_from_file(output_filename):
     # Read the file and save it in an array without the \n character
@@ -85,8 +85,6 @@ def delete_wrong_records(records):
 
 def get_IR_messages(IR_transmission, time):
 
-    MSG_THRESHOLD = 150
-    MSG_DURATION = 100
 
     IR_msg = []
     time_msg = []
@@ -98,7 +96,7 @@ def get_IR_messages(IR_transmission, time):
     while i < (len(time)):
 
         # Remove noise and only get IR messages
-        if (IR_transmission[i] > MSG_THRESHOLD):
+        if (IR_transmission[i] > MSG_NOISE_THRESHOLD):
             start_of_msg = i
 
             while(i < (start_of_msg + MSG_DURATION)):
@@ -121,31 +119,40 @@ def get_IR_messages(IR_transmission, time):
 
 def remove_PWM_gaps(IR_messages):
 
-    no_zeros_msgs = []
+    no_zeros_msg = []
+    no_zeros_messages = [] 
 
     for msg in IR_messages:
         for value in msg:
-            if(value < 0):
-                msg.remove(value)
+            if(value > MSG_NOISE_THRESHOLD):
+                no_zeros_msg.append(value)
         
-        no_zeros_msgs.append(msg)
+        no_zeros_messages.append(no_zeros_msg)
+        #Delete values in no_zeros_msg since they are already stored in no_zeros_messages
+        no_zeros_msg = []
     
-    return no_zeros_msgs
+    return no_zeros_messages
 
 
-def compute_avg(no_zeros_msgs):
+def compute_avg(no_zeros_msgs):    
     sum = 0
     means = []
     for msg in no_zeros_msgs:
         for value in msg:
             sum += value
+        
         means.append(sum / len(msg))    
+        sum = 0 
     
     return means
     
 
 def plot_means(means, IR_transmission, time):
+    #get_IR_messages(IR_transmission, time)
     pass
+
+
+
 
 
 if __name__ == "__main__":
