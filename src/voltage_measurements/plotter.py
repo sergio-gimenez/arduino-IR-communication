@@ -14,19 +14,18 @@ def main():
     v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(
         RECORDED_DATA_FILENAME)
 
-    rx_messages, tx_messages, time_acc = get_IR_messages(v_rx_preamp, v_tx, time)
+    rx_messages, time_acc = get_IR_messages(v_rx_preamp, time)
+    tx_messages = get_IR_messages(v_tx, time)
 
-    #plt.plot(time_acc[0], rx_messages[0], label="Messages pre-amp", color='orange')
-    #plt.plot(time_acc[1], rx_messages[1], label="Messages pre-amp", color='red')
-    #format_plot('Time [s]', 'Voltage [mV]', " ")
+    plt.plot(time_acc[0], rx_messages[0], label="Messages pre-amp", color='orange')
+    plt.plot(time_acc[1], rx_messages[1], label="Messages pre-amp", color='red')
+    format_plot('Time [s]', 'Voltage [mV]', " ")
 
     non_zeros_rx = remove_PWM_gaps(rx_messages)
     non_zeros_tx = remove_PWM_gaps(tx_messages)
 
     avg_rx_means = compute_avg(non_zeros_rx)
     avg_tx_means = compute_avg(non_zeros_tx)
-
-
 
 
 
@@ -84,46 +83,41 @@ def delete_wrong_records(records):
     return v_rx_amp, v_rx_preamp, v_tx, time
 
 
-def get_IR_messages(v_rx_preamp, v_tx, time):
+def get_IR_messages(IR_transmission, time):
 
     MSG_THRESHOLD = 150
     MSG_DURATION = 100
 
-    IR_rx_msg = []
-    IR_tx_msg = []
-    msg_time = []
+    IR_msg = []
+    time_msg = []
 
-    rx_messages = []
-    tx_messages = []
-    time_acc = []
+    IR_messages = []
+    time_messages = []
 
     i = 0
     while i < (len(time)):
 
         # Remove noise and only get IR messages
-        if (v_rx_preamp[i] > MSG_THRESHOLD):
+        if (IR_transmission[i] > MSG_THRESHOLD):
             start_of_msg = i
 
             while(i < (start_of_msg + MSG_DURATION)):
-                IR_rx_msg.append(v_rx_preamp[i])
-                IR_tx_msg.append(v_tx[i])
-                msg_time.append(time[i])
+                IR_msg.append(IR_transmission[i])
+                time_msg.append(time[i])
                 i += 1
 
-            rx_messages.append(IR_rx_msg)
-            tx_messages.append(IR_tx_msg)
-            time_acc.append(msg_time)
+            IR_messages.append(IR_msg)
+            time_messages.append(time_msg)
 
             # Remove recorded message because it is already saved in rx_messages.
-            IR_rx_msg = []
-            IR_tx_msg = []
-            msg_time = []
+            IR_msg = []
+            time_msg = []
             
             continue
 
         i += 1
-
-    return rx_messages, tx_messages, time_acc
+    
+    return IR_messages, time_messages
 
 def remove_PWM_gaps(IR_messages):
 
@@ -148,6 +142,7 @@ def compute_avg(no_zeros_msgs):
         means.append(sum / len(msg))    
     
     return means
+    
 
 def plot_means(means, IR_transmission, time):
     pass
