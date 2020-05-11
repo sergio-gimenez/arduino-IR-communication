@@ -3,8 +3,9 @@
 import matplotlib.pyplot as plt
 import sys
 
-MSG_NOISE_THRESHOLD = 150 # In mV
-MSG_DURATION = 100 # In milliseconds
+MSG_NOISE_THRESHOLD = 150  # In mV
+MSG_DURATION = 60  # In milliseconds
+
 
 def main():
 
@@ -14,14 +15,13 @@ def main():
     v_rx_preamp = []
     v_tx = []
 
-    v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(
-        RECORDED_DATA_FILENAME)
+    v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(RECORDED_DATA_FILENAME)
 
     rx_messages = get_IR_messages(v_rx_preamp, time)[0]
     tx_messages = get_IR_messages(v_tx, time)[0]
     time_acc = get_IR_messages(v_tx, time)[1]
 
-    non_zeros_rx = remove_PWM_gaps(rx_messages)    
+    non_zeros_rx = remove_PWM_gaps(rx_messages)
     non_zeros_tx = remove_PWM_gaps(tx_messages)
 
     avg_rx_means = compute_avg(non_zeros_rx)
@@ -32,12 +32,11 @@ def main():
 
     plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V", color='orange')
     plt.plot(time, v_tx, label="V Tx from Transmitter", color='green')
-    plt.plot(time, avg_rx_amplitude, label="Avg amplitude", color='red') 
-    plt.plot(time, avg_tx_amplitude, label="Avg amplitude", color='darkgreen') 
-    
-    format_plot('Time [s]', 'Voltage [mV]',
-                    'IR Transmission\nReceived 6 messages (32bit each)')
+    plt.plot(time, avg_rx_amplitude, label="Avg amplitude Rx", color='red', linestyle='--')
+    plt.plot(time, avg_tx_amplitude, label="Avg amplitude Tx", color='darkred', linestyle='--')
 
+    format_plot('Time [s]', 'Voltage [mV]',
+                'IR Transmission\nReceived 6 messages (32bit each)')
 
 
 def get_voltages_from_file(output_filename):
@@ -50,7 +49,7 @@ def format_plot(x_axis_label, y_axis_label, title):
     plt.xlabel(x_axis_label)
     plt.ylabel(y_axis_label)
     plt.title(title)
-    plt.xlim(0, 2000)
+    plt.xlim(0, 800)
     plt.ylim(0, 5000)
     plt.grid()
     plt.legend()
@@ -93,7 +92,6 @@ def delete_wrong_records(records):
 
 def get_IR_messages(IR_transmission, time):
 
-
     IR_msg = []
     time_msg = []
 
@@ -121,42 +119,43 @@ def get_IR_messages(IR_transmission, time):
             # Remove recorded message because it is already saved in rx_messages.
             IR_msg = []
             time_msg = []
-            
+
             continue
 
         i += 1
-    
+
     return IR_messages, time_messages, start_of_messages
+
 
 def remove_PWM_gaps(IR_messages):
 
     no_zeros_msg = []
-    no_zeros_messages = [] 
+    no_zeros_messages = []
 
     for msg in IR_messages:
         for value in msg:
             if(value > MSG_NOISE_THRESHOLD):
                 no_zeros_msg.append(value)
-        
+
         no_zeros_messages.append(no_zeros_msg)
-        #Delete values in no_zeros_msg since they are already stored in no_zeros_messages
+        # Delete values in no_zeros_msg since they are already stored in no_zeros_messages
         no_zeros_msg = []
-    
+
     return no_zeros_messages
 
 
-def compute_avg(no_zeros_msgs):    
+def compute_avg(no_zeros_msgs):
     sum = 0
     means = []
     for msg in no_zeros_msgs:
         for value in msg:
             sum += value
-        
-        means.append(sum / len(msg))    
-        sum = 0 
-    
+
+        means.append(sum / len(msg))
+        sum = 0
+
     return means
-    
+
 
 def plot_mean(means, IR_transmission, time):
     avg_v = []
@@ -170,7 +169,7 @@ def plot_mean(means, IR_transmission, time):
 
         else:
             avg_v.append(means[msg_counter][0])
-            end_of_msg =  start_of_messages[msg_counter] + MSG_DURATION
+            end_of_msg = start_of_messages[msg_counter] + MSG_DURATION
             while i < end_of_msg:
                 avg_v.append(means[msg_counter][0])
                 i += 1
@@ -181,36 +180,33 @@ def plot_mean(means, IR_transmission, time):
 
 
 def get_avg_voltage_ready_to_plot(means, IR_transmission, time):
-
     start_of_messages = get_IR_messages(IR_transmission, time)[2]
-
-    number_of_messages = len(start_of_messages) - 1 # Since 0 counts
+    number_of_messages = len(start_of_messages) - 1  # Since index starts from 0
 
     end_of_messages = []
     for i in range(len(start_of_messages)):
         end_of_messages.append(start_of_messages[i] + MSG_DURATION)
-    
 
     avg_v = []
     msg_counter = 0
 
     i = 0
     while i < len(time):
-        if(i < start_of_messages[msg_counter]):
+        if((i < start_of_messages[msg_counter]) or (i > end_of_messages[number_of_messages])):
             avg_v.append(0)
         else:
-            
             avg_v.append(means[msg_counter])
             while i < end_of_messages[msg_counter]:
                 avg_v.append(means[msg_counter])
-                i+=1
-            
+                i += 1
+
             if(msg_counter < number_of_messages):
-                msg_counter+=1
-        
-        i+=1
-    
+                msg_counter += 1
+
+        i += 1
+
     return avg_v
+
 
 if __name__ == "__main__":
     main()
