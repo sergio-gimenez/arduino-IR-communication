@@ -156,29 +156,6 @@ def compute_avg(no_zeros_msgs):
 
     return means
 
-
-def plot_mean(means, IR_transmission, time):
-    avg_v = []
-    msg_counter = 0
-    start_of_messages = get_IR_messages(IR_transmission, time)[2]
-
-    i = 0
-    while i < len(time):
-        if (time[i] != start_of_messages[msg_counter]):
-            avg_v.append(0)
-
-        else:
-            avg_v.append(means[msg_counter][0])
-            end_of_msg = start_of_messages[msg_counter] + MSG_DURATION
-            while i < end_of_msg:
-                avg_v.append(means[msg_counter][0])
-                i += 1
-
-        msg_counter += 1
-
-    plt.plot(time, avg_v, label="AVG Amplitude", color='blue')
-
-
 def get_avg_voltage_ready_to_plot(means, IR_transmission, time):
     start_of_messages = get_IR_messages(IR_transmission, time)[2]
     number_of_messages = len(start_of_messages) - 1  # Since index starts from 0
@@ -206,6 +183,18 @@ def get_avg_voltage_ready_to_plot(means, IR_transmission, time):
         i += 1
 
     return avg_v
+
+
+def get_msg_max_amplitude(IR_transmission, time):
+    messages = get_IR_messages(IR_transmission, time)[0]
+    
+    max_values = []
+
+    for msg in messages:
+      max_values.append(max(msg))
+
+    return max_values
+
 
 
 if __name__ == "__main__":
