@@ -18,12 +18,11 @@ float v_tx;
 
 
 void setup() {
-  Serial.begin(2000000);
+  Serial.begin(115200);
 
   // In case the interrupt driver crashes on setup, give a clue
   // to the user what's going on.
   //This message can be removed if recording data into file
-
   //Serial.println("Waiting for an IR packet");
 }
 
@@ -32,7 +31,7 @@ void loop() {
   rx_preamp = analogRead(rx_preamp_pin);
   tx = analogRead(tx_pin);
 
-  // Start program if message received and loop thrpugh it while transmission is not over  
+  // Start program if message received and loop thrpugh it while transmission is not over
   if (((rx_amp > 300) || (tx > 150)) && !isEOT) {
     has_tx_started = true;
     start_time = millis();

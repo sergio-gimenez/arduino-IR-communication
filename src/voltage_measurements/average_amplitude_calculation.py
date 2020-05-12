@@ -29,6 +29,6 @@ plt.plot(time, v_tx, label="V Tx from Transmitter", color='green')
 plt.plot(time, avg_rx_amplitude, label="Avg amplitude Rx", color='red', linestyle='--')
 plt.plot(time, avg_tx_amplitude, label="Avg amplitude Tx", color='darkred', linestyle='--')
 
-plotter.format_plot('Time [s]', 'Voltage [mV]',
+plotter.format_plot('Time [ms]', 'Voltage [mV]',
             'IR Transmission\nReceived 6 messages (32bit each)')
 

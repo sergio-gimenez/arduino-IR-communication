@@ -35,7 +35,7 @@ def main():
     plt.plot(time, avg_rx_amplitude, label="Avg amplitude Rx", color='red', linestyle='--')
     plt.plot(time, avg_tx_amplitude, label="Avg amplitude Tx", color='darkred', linestyle='--')
 
-    format_plot('Time [s]', 'Voltage [mV]',
+    format_plot('Time [ms]', 'Voltage [mV]',
                 'IR Transmission\nReceived 6 messages (32bit each)')
 
 
@@ -49,7 +49,7 @@ def format_plot(x_axis_label, y_axis_label, title):
     plt.xlabel(x_axis_label)
     plt.ylabel(y_axis_label)
     plt.title(title)
-    plt.xlim(0, 800)
+    plt.xlim(0, 3500)
     plt.ylim(0, 5000)
     plt.grid()
     plt.legend()

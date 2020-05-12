@@ -2,7 +2,7 @@
 
 OUTPUT_FILE="out.csv" 
 SERIAL_PORT="/dev/ttyACM0"
-TIMEOUT=4
+TIMEOUT=7
 
 echo " "
 echo "*************************************************************"
