@@ -4,56 +4,16 @@ import matplotlib.pyplot as plt
 import sys
 
 MSG_NOISE_THRESHOLD = 150  # In mV
-MSG_DURATION = 60  # In milliseconds
+MSG_DURATION = 85.5  # In milliseconds
 
 
 def main():
-
-    RECORDED_DATA_FILENAME = "out.csv"
-    time = []
-    v_rx_amp = []
-    v_rx_preamp = []
-    v_tx = []
-
-    v_rx_amp, v_rx_preamp, v_tx, time = get_voltages_from_file(RECORDED_DATA_FILENAME)
-
-    rx_messages = get_IR_messages(v_rx_preamp, time)[0]
-    tx_messages = get_IR_messages(v_tx, time)[0]
-    time_acc = get_IR_messages(v_tx, time)[1]
-
-    non_zeros_rx = remove_PWM_gaps(rx_messages)
-    non_zeros_tx = remove_PWM_gaps(tx_messages)
-
-    avg_rx_means = compute_avg(non_zeros_rx)
-    avg_tx_means = compute_avg(non_zeros_tx)
-
-    avg_rx_amplitude = get_avg_voltage_ready_to_plot(avg_rx_means, v_rx_preamp, time)
-    avg_tx_amplitude = get_avg_voltage_ready_to_plot(avg_tx_means, v_tx, time)
-
-    plt.plot(time, v_rx_preamp, label="Pre-amplified Rcv V", color='orange')
-    plt.plot(time, v_tx, label="V Tx from Transmitter", color='green')
-    plt.plot(time, avg_rx_amplitude, label="Avg amplitude Rx", color='red', linestyle='--')
-    plt.plot(time, avg_tx_amplitude, label="Avg amplitude Tx", color='darkred', linestyle='--')
-
-    format_plot('Time [ms]', 'Voltage [mV]',
-                'IR Transmission\nReceived 6 messages (32bit each)')
-
+    pass
 
 def get_voltages_from_file(output_filename):
     # Read the file and save it in an array without the \n character
     records = open(output_filename, "r").read().splitlines()
     return delete_wrong_records(records)
-
-
-def format_plot(x_axis_label, y_axis_label, title):
-    plt.xlabel(x_axis_label)
-    plt.ylabel(y_axis_label)
-    plt.title(title)
-    plt.xlim(0, 3500)
-    plt.ylim(0, 5000)
-    plt.grid()
-    plt.legend()
-    plt.show()
 
 
 def check_if_record_is_correct(str_v_rx_amp, str_v_rx_preamp, str_v_tx, str_time):
@@ -156,29 +116,6 @@ def compute_avg(no_zeros_msgs):
 
     return means
 
-
-def plot_mean(means, IR_transmission, time):
-    avg_v = []
-    msg_counter = 0
-    start_of_messages = get_IR_messages(IR_transmission, time)[2]
-
-    i = 0
-    while i < len(time):
-        if (time[i] != start_of_messages[msg_counter]):
-            avg_v.append(0)
-
-        else:
-            avg_v.append(means[msg_counter][0])
-            end_of_msg = start_of_messages[msg_counter] + MSG_DURATION
-            while i < end_of_msg:
-                avg_v.append(means[msg_counter][0])
-                i += 1
-
-        msg_counter += 1
-
-    plt.plot(time, avg_v, label="AVG Amplitude", color='blue')
-
-
 def get_avg_voltage_ready_to_plot(means, IR_transmission, time):
     start_of_messages = get_IR_messages(IR_transmission, time)[2]
     number_of_messages = len(start_of_messages) - 1  # Since index starts from 0
@@ -206,6 +143,17 @@ def get_avg_voltage_ready_to_plot(means, IR_transmission, time):
         i += 1
 
     return avg_v
+
+
+def get_msg_max_amplitude(IR_transmission, time):
+    messages = get_IR_messages(IR_transmission, time)[0]
+    
+    max_values = []
+
+    for msg in messages:
+      max_values.append(max(msg))
+
+    return max_values
 
 
 if __name__ == "__main__":
