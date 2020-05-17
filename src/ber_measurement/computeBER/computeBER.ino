@@ -49,13 +49,13 @@ void setup()
   Wire.onReceive(handle_i2c_event);
 
   // In case the interrupt driver crashes on setup, give a clue to the user what's going on.
-  Serial.println("Enabled IRin and I2C bus");
+  Serial.println("Enabled IRin and I2C bus\n");
 }
 
 void loop() {
 
   if (irrecv.decode(&results) && isI2CinBuf) {
-    Serial.println("i2c packet is in buffer");
+    //Serial.println("i2c packet is in buffer");
     has_tx_started = true;
 
     Serial.print("IR Received message: ");
