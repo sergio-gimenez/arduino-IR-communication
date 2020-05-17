@@ -3,6 +3,7 @@
 OUTPUT_FILE="out.csv" 
 SERIAL_PORT="/dev/ttyACM0"
 TIMEOUT=7
+RASPBERRY_IP=192.168.1.10
 
 echo " "
 echo "*************************************************************"
@@ -17,7 +18,7 @@ rm $OUTPUT_FILE 2> /dev/null
 disown # Make the kill command quiet
 
 # Open ssh connection to the raspberry and send IR data
-ssh -t pi@192.168.1.8 -i ~/.ssh/sergio-laptop.key "sudo /home/pi/tfg/src/raspberry_tx/ir-slinger/send_ones.sh"
+ssh -t pi@$RASPBERRY_IP -i ~/.ssh/sergio-laptop.key "sudo /home/pi/tfg/src/raspberry_tx/ir-slinger/send_ones.sh"
 
 # Read all the messages sent from the raspberry
 # Make sure that the timeout is enough to receive all the IR msgs.
@@ -30,8 +31,7 @@ done
 kill -9 $(pidof tail)
 
 # Plot the results
-./average_amplitude_calculation.py
-
+./voltages_plot.py
 
 
 
