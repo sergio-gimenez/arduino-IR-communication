@@ -54,6 +54,7 @@ void setup()
 
 void loop() {
 
+  // Get IR message only if an I2C has been received
   if (irrecv.decode(&results) && isI2CinBuf) {
     //Serial.println("i2c packet is in buffer");
     has_tx_started = true;
