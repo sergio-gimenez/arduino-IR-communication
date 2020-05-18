@@ -52,7 +52,7 @@ void loop() {
   if (irrecv.decode(&results) && isI2CinBuf) {
     has_tx_started = true;
 
-    Serial.print("IR Received message: ");
+    Serial.print(" IR Received message = ");
     Serial.println(results.value, HEX);
     Serial.println("\n");
 
@@ -72,17 +72,31 @@ void loop() {
   // Check if the timeout is over
   unsigned int time_elapsed = millis() - last_message_timestamp;
   if (((time_elapsed > LAST_IR_MESSAGE_TIMEOUT) && has_tx_started)) {
-    
+
     double BER = (double) wrong_bits_sum / (double)(32 * received_msgs_count);
 
-    Serial.print("Average BER for the transmission: ");
-    Serial.println(BER, 20);
+    //TODO wrap all the prints in a function
 
-    Serial.print("Total time elapsed: ");
+    Serial.println("\n\nEXPERIMENT REPORT");
+    Serial.println("-------------------\n");
+    
+    Serial.print("\n- Total wrong bits in the transmission: ");
+    Serial.println(wrong_bits_sum);
+
+    Serial.print("\n- Total bits received: ");
+    Serial.println(32 * received_msgs_count);
+
+    Serial.print("\n- Average BER for the transmission: ");
+    Serial.println(BER, 20);
+    Serial.println("    * Disclaimer: This BER value might be wrong, arduino doesn't deal good with big decimal numbers. ");
+    Serial.println("      Anyhow the BER value is just: BER = wrong_bits_sum / total_bits_received;");
+    
+
+    Serial.print("\n- Total time elapsed: ");
     Serial.print(millis() / (1000 - (LAST_IR_MESSAGE_TIMEOUT / 1000)));
     Serial.println(" seconds");
 
-    Serial.print("\nIn the whole transmission, received ");
+    Serial.print("\n\nDuring the whole transmission, received ");
     Serial.print(rcv_i2c_pkts / I2C_PKT_LENGTH);
     Serial.print(" i2c pacekts and ");
     Serial.print(received_msgs_count);
