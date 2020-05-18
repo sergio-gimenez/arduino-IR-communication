@@ -84,12 +84,13 @@ void loop() {
     Serial.println(wrong_bits_sum);
 
     Serial.print("\n- Total bits received: ");
-    Serial.println(32 * received_msgs_count);
+    long total_bits_received =  received_msgs_count * 32;
+    Serial.println(total_bits_received);
 
     Serial.print("\n- Average BER for the transmission: ");
     Serial.println(BER, 20);
     Serial.println("    * Disclaimer: This BER value might be wrong, arduino doesn't deal good with big decimal numbers. ");
-    Serial.println("      Anyhow the BER value is just: BER = wrong_bits_sum / total_bits_received;");
+    Serial.println("      Anyhow the BER value is just: BER = total_wrong_bits / total_bits_received;");
     
 
     Serial.print("\n- Total time elapsed: ");
