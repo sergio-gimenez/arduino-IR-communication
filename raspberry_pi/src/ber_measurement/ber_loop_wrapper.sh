@@ -1,7 +1,6 @@
 #!/bin/bash
 
-TOTAL_MSGS=500
-counter=0
+TOTAL_MSGS=10000
 
 TEMPFILE=/tmp/$$.tmp
 TEMP_RES=/tmp/$$_res.tmp
