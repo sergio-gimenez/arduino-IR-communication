@@ -6,9 +6,6 @@
 #define I2C_PKT_LENGTH 4
 #define I2C_BUS_ADDRESS 8
 
-// Set in false for not extra information. i.e when data logging
-boolean verbose = true;
-
 // IR VARIABLES \\
 
 int IR_RECV_PIN = 11;
@@ -33,9 +30,6 @@ int offset;
 long rcv_i2c_pkts;
 boolean isI2CinBuf = false;
 
-//boolean isIRinBuf = false; //TODO I think it can be removed
-
-
 void setup()
 {
   Serial.begin(38400);
@@ -56,17 +50,16 @@ void loop() {
 
   // Get IR message only if an I2C has been received
   if (irrecv.decode(&results) && isI2CinBuf) {
-    //Serial.println("i2c packet is in buffer");
     has_tx_started = true;
 
-    Serial.print("IR Received message: ");
+    Serial.print(" IR Received message = ");
     Serial.println(results.value, HEX);
     Serial.println("\n");
-    
+
     received_msgs_count++;
 
     // Sum of all wrong bits in the transmission
-    wrong_bits_sum += get_wrong_bits(results.value, expected_message);
+    wrong_bits_sum += get_wrong_bits(expected_message, results.value);
 
     last_message_timestamp = millis();
 
@@ -80,14 +73,35 @@ void loop() {
   unsigned int time_elapsed = millis() - last_message_timestamp;
   if (((time_elapsed > LAST_IR_MESSAGE_TIMEOUT) && has_tx_started)) {
 
-    double BER = wrong_bits_sum / (32 * received_msgs_count);
+    double BER = (double) wrong_bits_sum / (double)(32 * received_msgs_count);
 
-    Serial.print("Average BER for the transmission: ");
+    //TODO wrap all the prints in a function
+
+    Serial.println("\n\nEXPERIMENT REPORT");
+    Serial.println("-------------------\n");
+    
+    Serial.print("\n- Total wrong bits in the transmission: ");
+    Serial.println(wrong_bits_sum);
+
+    Serial.print("\n- Total bits received: ");
+    long total_bits_received =  received_msgs_count * 32;
+    Serial.println(total_bits_received);
+
+    Serial.print("\n- Average BER for the transmission: ");
     Serial.println(BER, 20);
-    Serial.print("Received i2c pckts: ");
-    Serial.println(rcv_i2c_pkts / I2C_PKT_LENGTH);
-    Serial.print("Total time elapsed: ");
-    Serial.println(millis() / (1000 - (LAST_IR_MESSAGE_TIMEOUT / 1000)));
+    Serial.println("    * Disclaimer: This BER value might be wrong, arduino doesn't deal good with big decimal numbers. ");
+    Serial.println("      Anyhow the BER value is just: BER = total_wrong_bits / total_bits_received;");
+    
+
+    Serial.print("\n- Total time elapsed: ");
+    Serial.print(millis() / (1000 - (LAST_IR_MESSAGE_TIMEOUT / 1000)));
+    Serial.println(" seconds");
+
+    Serial.print("\n\nDuring the whole transmission, received ");
+    Serial.print(rcv_i2c_pkts / I2C_PKT_LENGTH);
+    Serial.print(" i2c pacekts and ");
+    Serial.print(received_msgs_count);
+    Serial.print(" IR packets");
 
     has_tx_started = false;
     time_elapsed = 0;
@@ -123,7 +137,7 @@ long get_wrong_bits(long expected_msg, long received_msg)
 void handle_i2c_event() {
 
   rcv_i2c_pkts++;
-  
+
   i2c_rbuf[i2c_bytes_count] = Wire.read();
 
   // TODO I could wrap the bit shifting in a function to make it more readable
