@@ -9,8 +9,6 @@ TEMP_RES=/tmp/$$_res.tmp
 echo 0 > $TEMPFILE
 echo 0 > $TEMP_RES
 
-echo "$a / ( $b - 34 )" | bc -l
-
 for (( i = 1; i <= $TOTAL_MSGS; i++ )) 
 do
 
