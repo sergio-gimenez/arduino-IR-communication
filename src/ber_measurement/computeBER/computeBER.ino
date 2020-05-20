@@ -15,7 +15,7 @@ decode_results results;
 // Expected message from the sender (generated randomly)
 long expected_message = 0b00000000000000000000000000000000;
 long wrong_bits_sum;
-int received_msgs_count;
+long received_msgs_count;
 boolean has_tx_started = false;
 int last_message_timestamp = 0;
 
