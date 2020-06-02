@@ -14,8 +14,8 @@ decode_results results;
 
 // Expected message from the sender (generated randomly)
 long expected_message = 0b00000000000000000000000000000000;
-long wrong_bits_sum;
-int received_msgs_count;
+unsigned long wrong_bits_sum;
+unsigned long received_msgs_count;
 boolean has_tx_started = false;
 int last_message_timestamp = 0;
 
@@ -27,7 +27,7 @@ unsigned long i2c_rbuf[I2C_PKT_LENGTH];
 unsigned long msg;
 boolean isEOT = false;
 int offset;
-long rcv_i2c_pkts;
+unsigned long rcv_i2c_pkts;
 boolean isI2CinBuf = false;
 
 void setup()
