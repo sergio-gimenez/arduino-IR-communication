@@ -9,36 +9,36 @@
 #define SYSCLOCK 16000000  // main system clock (Hz)
 #define PULSECLOCK 38000  // Hz
 #define IROUT 11
+#define MAX_32_BIT_VALUE 2147483647
+#define PKT_LENGTH 4 //In bytes
+
+long randNumber;
+int tx_buf[4];
+byte buf_to_send[4];
 
 uint8_t timer2top(unsigned long freq);
 void get_ir_tx_ready();
-
-#define MAX_32_BIT_VALUE 2147483647
-long randNumber;
-
 
 void setup() {
   Serial.begin(2400);
   get_ir_tx_ready();
 
   /*
-   * If analog input pin 0 is unconnected, random analog
-   * noise will cause the call to randomSeed() to generate
-   * different seed numbers each time the sketch runs.
-   * randomSeed() will then shuffle the random function.
+     If analog input pin 0 is unconnected, random analog
+     noise will cause the call to randomSeed() to generate
+     different seed numbers each time the sketch runs.
+     randomSeed() will then shuffle the random function.
   */
-  randomSeed(analogRead(0)); 
-  
+  randomSeed(analogRead(0));
+
+  delay(5000);
 }
 
 
 void loop() {
   randNumber = random(MAX_32_BIT_VALUE);
-  Serial.println(randNumber);
+  Serial.println(randNumber); 
 }
-
-
-
 
 
 // return TIMER2 TOP value per given desired frequency (Hz)
