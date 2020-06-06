@@ -1,3 +1,5 @@
+#include <Wire.h> // I2C library
+
 // defines for setting and clearing register bits
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
@@ -11,15 +13,23 @@
 #define IROUT 11
 #define MAX_32_BIT_VALUE 2147483647
 #define PKT_LENGTH 4 //In bytes
+#define I2C_ADDR 8
+#define PKT_LENGTH 4 //In bytes
+
 
 long randNumber;
 int tx_buf[4];
 byte buf_to_send[4];
+int splitted_msg[4];
+int i2c_bytes_count;
 
 uint8_t timer2top(unsigned long freq);
 void get_ir_tx_ready();
+void send_i2c_pkt (long i2c_randNumber);
+
 
 void setup() {
+  Wire.begin();
   Serial.begin(2400);
   get_ir_tx_ready();
 
@@ -32,15 +42,34 @@ void setup() {
   randomSeed(analogRead(0));
 
   // Delay in order to wait for the receiver
-  delay(5000);
+  delay(8000);
 }
 
 
 void loop() {
   randNumber = random(MAX_32_BIT_VALUE);
-  Serial.println(randNumber); 
+  send_i2c_pkt(randNumber);
+  Serial.println(randNumber);
+  delay(100);
 }
 
+
+void send_i2c_pkt (long i2c_randNumber) {
+  i2c_bytes_count = 0;
+
+  while (i2c_bytes_count < PKT_LENGTH) {
+
+    for (int i = 0; i < PKT_LENGTH; i++) {
+      //extract the right-most byte of the shifted variable
+      splitted_msg[i] = ((i2c_randNumber >> (i * 8)) & 0xFF);
+    }
+
+    Wire.beginTransmission(I2C_ADDR);
+    Wire.write(splitted_msg[i2c_bytes_count]);
+    Wire.endTransmission(); 
+    i2c_bytes_count ++;
+  }
+}
 
 // return TIMER2 TOP value per given desired frequency (Hz)
 uint8_t timer2top(unsigned long freq) {

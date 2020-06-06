@@ -22,7 +22,7 @@ void setup() {
      randomSeed() will then shuffle the random function.
   */
   randomSeed(analogRead(0));
-  delay(7000);
+  delay(10000);
 }
 void loop() {
   send_i2c_pkt ();
