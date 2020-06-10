@@ -15,7 +15,7 @@ long expected_message = 0b00000000000000000000000000000000;
 unsigned long wrong_bits_sum;
 unsigned long received_msgs_count;
 boolean has_tx_started = false;
-int last_message_timestamp = 0;
+long last_message_timestamp = 0;
 long ir_rcv_msg;
 
 // I2C variables \\
@@ -56,9 +56,9 @@ void loop() {
       ir_rcv_msg = Serial.parseInt();
     }
     
-    Serial.print(" IR Received message = ");
-    Serial.println(ir_rcv_msg, HEX);
-    Serial.println("\n");
+    //Serial.print(" IR Received message = ");
+    //Serial.println(ir_rcv_msg, HEX);
+    //Serial.println("\n");
 
     received_msgs_count++;
 
@@ -100,7 +100,7 @@ void loop() {
 
 
     Serial.print("\n- Total time elapsed: ");
-    Serial.print((float)(last_message_timestamp - global_timer_start) / (float)1000);
+    Serial.print((last_message_timestamp - global_timer_start) / 1000);
     Serial.println(" seconds");
 
     Serial.print("\n\nDuring the whole transmission, received ");
@@ -116,18 +116,6 @@ void loop() {
   }
 }
 
-void read_from_serial() {
-  int bytes_to_read_in_buffer, i, current_byte;
-
-  bytes_to_read_in_buffer = Serial.available();
-  if (bytes_to_read_in_buffer > 0) {
-    i = bytes_to_read_in_buffer;
-    while (i--) {
-      current_byte = Serial.read();
-      Serial.print((char) current_byte);
-    }
-  }
-}
 
 // Detect the errors in the message received and returns the amount of errors in a message.
 // Argumnents:
@@ -141,7 +129,7 @@ long get_wrong_bits(long expected_msg, long received_msg)
   for (int i = 0; i < 32; i++) {
 
     // right shift both the numbers by 'i' and
-    // check if the bit at the 0th position is different
+    // check if the bit at the ith position is different
     if (((expected_msg >> i) & 1) != ((received_msg >> i) & 1)) {
       count++;
     }
@@ -172,16 +160,6 @@ void handle_i2c_event() {
   }
 
   if (isEOT) {
-
-    // Verify that received message is not a i2c scan
-    if (!(msg == 0xFFFFFFFF)) {
-
-      Serial.print("I2C Received message = ");
-      Serial.println(msg, HEX);
-
-      expected_message = msg;
-    }
-
     // End of i2c transmission. Reinitialize variables
     msg = 0;
     i2c_bytes_count = 0;

@@ -16,7 +16,7 @@
 #define I2C_ADDR 8
 #define PKT_LENGTH 4 //In bytes
 #define ACK 0x06 //ACK character 
-#define EXPERIMENT_ITERATIONS 50000
+#define EXPERIMENT_ITERATIONS 200
 
 
 long randNumber;
@@ -45,7 +45,7 @@ void setup() {
   randomSeed(analogRead(0));
 
   // Delay in order to wait for the receiver
-  delay(8000);
+  delay(5000);
 
   // Send first data frame
   randNumber = random(MAX_32_BIT_VALUE);
