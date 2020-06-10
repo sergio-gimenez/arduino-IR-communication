@@ -15,6 +15,8 @@
 #define PKT_LENGTH 4 //In bytes
 #define I2C_ADDR 8
 #define PKT_LENGTH 4 //In bytes
+#define ACK 0x06 //ACK character 
+#define EXPERIMENT_ITERATIONS 50000
 
 
 long randNumber;
@@ -22,6 +24,7 @@ int tx_buf[4];
 byte buf_to_send[4];
 int splitted_msg[4];
 int i2c_bytes_count;
+long iterations_counter = 0;
 
 uint8_t timer2top(unsigned long freq);
 void get_ir_tx_ready();
@@ -43,14 +46,28 @@ void setup() {
 
   // Delay in order to wait for the receiver
   delay(8000);
+
+  // Send first data frame
+  randNumber = random(MAX_32_BIT_VALUE);
+  send_i2c_pkt(randNumber);
+  Serial.println(randNumber);
 }
 
 
 void loop() {
-  randNumber = random(MAX_32_BIT_VALUE);
-  send_i2c_pkt(randNumber);
-  Serial.println(randNumber);
-  delay(100);
+  if (iterations_counter < EXPERIMENT_ITERATIONS) {
+
+    if (Serial.available() > 0) {
+      if (Serial.read() == ACK) {
+        randNumber = random(MAX_32_BIT_VALUE);
+        send_i2c_pkt(randNumber);
+        Serial.println(randNumber);
+        iterations_counter++;
+      }
+    }
+
+  }
+
 }
 
 
@@ -66,7 +83,7 @@ void send_i2c_pkt (long i2c_randNumber) {
 
     Wire.beginTransmission(I2C_ADDR);
     Wire.write(splitted_msg[i2c_bytes_count]);
-    Wire.endTransmission(); 
+    Wire.endTransmission();
     i2c_bytes_count ++;
   }
 }

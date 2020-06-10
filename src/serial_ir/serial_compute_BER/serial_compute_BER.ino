@@ -1,8 +1,12 @@
 #include <Wire.h> // I2C library
 
 #define LAST_IR_MESSAGE_TIMEOUT 5000
-#define PKT_LENGTH 4
+#define PKT_LENGTH 4 // In bytes
 #define I2C_BUS_ADDRESS 8
+#define ACK 0x06 //ACK character 
+
+
+long global_timer_start;
 
 // IR VARIABLES \\
 
@@ -43,11 +47,15 @@ void loop() {
   // Get IR message only if an I2C pkt has been received
   if (isI2CinBuf) {
     
+    if(!has_tx_started){
+      global_timer_start = millis();
+    }    
     has_tx_started = true;
 
     while (ir_rcv_msg == 0) {
       ir_rcv_msg = Serial.parseInt();
     }
+    
     Serial.print(" IR Received message = ");
     Serial.println(ir_rcv_msg, HEX);
     Serial.println("\n");
@@ -61,6 +69,8 @@ void loop() {
 
     isI2CinBuf = false;
     ir_rcv_msg = 0;
+
+    Serial.write(0x06);    
   }
 
   
@@ -90,14 +100,14 @@ void loop() {
 
 
     Serial.print("\n- Total time elapsed: ");
-    Serial.print(millis() / (1000 - (LAST_IR_MESSAGE_TIMEOUT / 1000)));
+    Serial.print((float)(last_message_timestamp - global_timer_start) / (float)1000);
     Serial.println(" seconds");
 
     Serial.print("\n\nDuring the whole transmission, received ");
     Serial.print(rcv_i2c_pkts / PKT_LENGTH);
     Serial.print(" i2c pacekts and ");
     Serial.print(received_msgs_count);
-    Serial.print(" IR packets");
+    Serial.println(" IR packets\n\n");
 
     has_tx_started = false;
     time_elapsed = 0;
