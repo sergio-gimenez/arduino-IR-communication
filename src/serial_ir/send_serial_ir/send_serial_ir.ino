@@ -42,10 +42,8 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     if (Serial.read() == 'A') {
-      ACK_received = true;
       randNumber = random(MAX_32_BIT_VALUE);
       Serial.println(randNumber);
-      ACK_received = false;
     }
   }
 
