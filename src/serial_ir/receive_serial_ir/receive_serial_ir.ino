@@ -9,5 +9,7 @@ void loop() {
   rcv_msg = Serial.parseInt();
   if (rcv_msg != 0) {
     Serial.println(rcv_msg);
+    delay(2500);
+    Serial.write('A');
   }
 }

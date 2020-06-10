@@ -15,6 +15,7 @@
 long randNumber;
 int tx_buf[4];
 byte buf_to_send[4];
+boolean ACK_received = false;
 
 uint8_t timer2top(unsigned long freq);
 void get_ir_tx_ready();
@@ -33,12 +34,21 @@ void setup() {
 
   // Delay in order to wait for the receiver
   delay(5000);
+  randNumber = random(MAX_32_BIT_VALUE);
+  Serial.println(randNumber);
 }
 
 
 void loop() {
-  randNumber = random(MAX_32_BIT_VALUE);
-  Serial.println(randNumber); 
+  if (Serial.available() > 0) {
+    if (Serial.read() == 'A') {
+      ACK_received = true;
+      randNumber = random(MAX_32_BIT_VALUE);
+      Serial.println(randNumber);
+      ACK_received = false;
+    }
+  }
+
 }
 
 
