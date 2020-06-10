@@ -70,7 +70,7 @@ void loop() {
     isI2CinBuf = false;
     ir_rcv_msg = 0;
 
-    Serial.write(0x06);    
+    Serial.write(ACK);    
   }
 
   
@@ -160,6 +160,12 @@ void handle_i2c_event() {
   }
 
   if (isEOT) {
+
+      //Serial.print("I2C Received message = ");
+      //Serial.println(msg, HEX);
+
+      expected_message = msg;
+    
     // End of i2c transmission. Reinitialize variables
     msg = 0;
     i2c_bytes_count = 0;
