@@ -35,9 +35,8 @@ void setup() {
   // Delay in order to wait for the receiver
   delay(5000);
 
-  randNumber = random(MAX_32_BIT_VALUE);
-
   // Send first data frame
+  randNumber = random(MAX_32_BIT_VALUE);
   for (int i = 0; i < PKT_LENGTH; i++) {
     //extract the right-most byte of the shifted variable
     splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);

@@ -28,11 +28,13 @@ void loop() {
     for (int i = 0; i < PKT_LENGTH; i++) {
       msg.asBytes[i] = (byte)Serial.read();
     }
+    
     //Serial.println(msg.asLong);
     //Serial.println(count);
     count++;
     Serial.write(ACK);
   }
+
   
   if (count == EXPERIMENT_ITERATIONS) {
     Serial.print("Time elapsed: ");

@@ -9,20 +9,22 @@ long global_timer_start;
 
 
 // IR VARIABLES \\
-
+byte rbuf[4];
 long expected_message; // Coming from the sender (randomly generated)
 unsigned long wrong_bits_sum;
 unsigned long received_msgs_count;
 boolean has_tx_started = false;
 long last_message_timestamp = 0;
-long ir_rcv_msg;
-
+union {
+  byte asBytes[4];
+  long asLong;
+} msg;
 
 // I2C variables \\
 
 int i2c_bytes_count;
 unsigned long i2c_rbuf[PKT_LENGTH];
-unsigned long msg;
+unsigned long i2c_msg;
 boolean isEOT = false;
 int offset;
 unsigned long rcv_i2c_pkts;
@@ -50,25 +52,28 @@ void loop() {
     }
     has_tx_started = true;
 
-    while (ir_rcv_msg == 0) {
-      ir_rcv_msg = Serial.parseInt();
+    while (true) {
+      if (Serial.available() >= PKT_LENGTH) {
+        for (int i = 0; i < PKT_LENGTH; i++) {
+          msg.asBytes[i] = (byte)Serial.read();
+        }
+        //Debugging prints:
+//        Serial.print(" IR Received message = ");
+//        Serial.println(msg.asLong, HEX);
+//        Serial.println("\n");
+        break;
+      }
     }
 
-    //Debugging prints:
-    //Serial.print(" IR Received message = ");
-    //Serial.println(ir_rcv_msg, HEX);
-    //Serial.println("\n");
 
     received_msgs_count++;
 
     // Sum of all wrong bits in the transmission
-    wrong_bits_sum += get_wrong_bits(expected_message, ir_rcv_msg);
+    wrong_bits_sum += get_wrong_bits(expected_message, msg.asLong);
 
     last_message_timestamp = millis();
 
     isI2CinBuf = false;
-    ir_rcv_msg = 0;
-
     Serial.write(ACK);
   }
 
@@ -76,7 +81,7 @@ void loop() {
   // Check if the timeout is over
   unsigned int time_elapsed = millis() - last_message_timestamp;
   if (((time_elapsed > LAST_IR_MESSAGE_TIMEOUT) && has_tx_started)) {
-    
+
     print_experiment_report();
 
     // End of experiment, reinitialize variables.
@@ -91,7 +96,7 @@ void loop() {
 // Detect the errors in the message received and returns the
 // amount of errors in a message.
 // Argumnents:
-// - received_msg: The received message you actually want to 
+// - received_msg: The received message you actually want to
 //                 count the errors.
 // - expected_message: The expected received message
 long get_wrong_bits(long expected_msg, long received_msg)
@@ -112,7 +117,7 @@ long get_wrong_bits(long expected_msg, long received_msg)
 
 
 // This function get 4 bytes from the I2C channel and saves them
-// in expected_message. 
+// in expected_message.
 // Function that executes whenever data is received from master
 // This function is registered as an event, see setup().
 void handle_i2c_event() {
@@ -123,7 +128,7 @@ void handle_i2c_event() {
 
   if (i2c_bytes_count < PKT_LENGTH) {
 
-    msg |= i2c_rbuf[offset / 8] << offset;
+    i2c_msg |= i2c_rbuf[offset / 8] << offset;
 
     if (i2c_bytes_count == (PKT_LENGTH - 1)) {
       isEOT = true;
@@ -136,13 +141,13 @@ void handle_i2c_event() {
   if (isEOT) {
 
     // Debugging prints
-    //Serial.print("I2C Received message = ");
-    //Serial.println(msg, HEX);
+    //    Serial.print("I2C Received message = ");
+    //    Serial.println(i2c_msg, HEX);
 
-    expected_message = msg;
+    expected_message = i2c_msg;
 
     // End of i2c transmission. Reinitialize variables
-    msg = 0;
+    i2c_msg = 0;
     i2c_bytes_count = 0;
     offset = 0;
     isEOT = false;
@@ -173,8 +178,8 @@ void print_experiment_report() {
 
 
   Serial.print("\n- Total time elapsed: ");
-  Serial.print((double)(last_message_timestamp - global_timer_start) / (double)1000);
-  Serial.println(" seconds");
+  Serial.print((last_message_timestamp - global_timer_start));
+  Serial.println(" milliseconds");
 
   Serial.print("\n\nDuring the whole transmission, received ");
   Serial.print(rcv_i2c_pkts / PKT_LENGTH);

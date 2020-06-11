@@ -1,4 +1,3 @@
-
 #include <Wire.h>
 
 #define I2C_ADDR 8
