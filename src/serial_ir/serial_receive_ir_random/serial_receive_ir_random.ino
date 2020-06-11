@@ -1,4 +1,6 @@
 #define PKT_LENGTH 4 //In bytes
+#define EXPERIMENT_ITERATIONS 200
+
 
 byte rbuf[4];
 long count = 0;
@@ -30,7 +32,7 @@ void loop() {
     count++;
 
   }
-  if (count == 200) {
+  if (count == EXPERIMENT_ITERATIONS) {
     Serial.print("Time elapsed: ");
     Serial.println(millis() - start_timer);
     count++;
