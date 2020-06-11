@@ -38,15 +38,30 @@ void setup() {
   Serial.println(randNumber);
 }
 
+int i = 0;
+long time_elapsed;
+long start_timer;
 
 void loop() {
-  if (Serial.available() > 0) {
-    if (Serial.read() == 'A') {
-      randNumber = random(MAX_32_BIT_VALUE);
-      Serial.println(randNumber);
+  if ( i == 0) {
+    start_timer = millis();
+  }
+  if (i < 200) {
+    if (Serial.available() > 0) {
+      if (Serial.read() == 'A') {
+        randNumber = random(MAX_32_BIT_VALUE);
+        Serial.println(randNumber);
+        i++;
+      }
     }
   }
-
+  if( i == 200){
+    time_elapsed = millis() - start_timer;
+    Serial.print("Total time elapsed: ");
+    Serial.println(time_elapsed);
+    Serial.println(" seconds");
+    i++;
+  }
 }
 
 
