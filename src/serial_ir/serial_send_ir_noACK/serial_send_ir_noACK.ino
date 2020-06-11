@@ -34,8 +34,6 @@ void setup() {
 
   // Delay in order to wait for the receiver
   delay(5000);
-  randNumber = random(MAX_32_BIT_VALUE);
-  Serial.println(randNumber);
 }
 
 int i = 0;
@@ -47,15 +45,11 @@ void loop() {
     start_timer = millis();
   }
   if (i < 200) {
-    if (Serial.available() > 0) {
-      if (Serial.read() == 'A') {
-        randNumber = random(MAX_32_BIT_VALUE);
-        Serial.println(randNumber);
-        i++;
-      }
-    }
+    //randNumber = random(MAX_32_BIT_VALUE);
+    Serial.println("AAAA");
+    i++;
   }
-  if( i == 200){
+  if ( i == 200) {
     time_elapsed = millis() - start_timer;
     Serial.print("Total time elapsed: ");
     Serial.println(time_elapsed);

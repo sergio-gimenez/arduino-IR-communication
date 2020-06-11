@@ -11,14 +11,14 @@
 #define IROUT 11
 #define MAX_32_BIT_VALUE 2147483647
 #define PKT_LENGTH 4 //In bytes
+#define ACK 0x06 //ASCII ACK character
+#define EXPERIMENT_ITERATIONS 200
 
-long randNumber;
-int tx_buf[4];
-byte buf_to_send[4];
-boolean ACK_received = false;
-
-uint8_t timer2top(unsigned long freq);
-void get_ir_tx_ready();
+unsigned long randNumber;
+byte splitted_msg[4];
+long time_elapsed;
+long start_timer;
+unsigned long iterations = 0;
 
 void setup() {
   Serial.begin(2400);
@@ -34,33 +34,28 @@ void setup() {
 
   // Delay in order to wait for the receiver
   delay(5000);
+
+  // Send first data frame
   randNumber = random(MAX_32_BIT_VALUE);
-  Serial.println(randNumber);
+  for (int i = 0; i < PKT_LENGTH; i++) {
+    //extract the right-most byte of the shifted variable
+    splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
+  }
+  Serial.write(splitted_msg, PKT_LENGTH);
 }
 
-int i = 0;
-long time_elapsed;
-long start_timer;
-
 void loop() {
-  if ( i == 0) {
-    start_timer = millis();
-  }
-  if (i < 200) {
-    if (Serial.available() > 0) {
-      if (Serial.read() == 'A') {
-        randNumber = random(MAX_32_BIT_VALUE);
-        Serial.println(randNumber);
-        i++;
+  if (iterations < EXPERIMENT_ITERATIONS) {
+    if ((Serial.available() > 0) && (Serial.read() == ACK)) {
+      randNumber = random(MAX_32_BIT_VALUE);
+
+      for (int i = 0; i < PKT_LENGTH; i++) {
+        //extract the right-most byte of the shifted variable
+        splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
       }
+      Serial.write(splitted_msg, PKT_LENGTH);
+      iterations++;
     }
-  }
-  if( i == 200){
-    time_elapsed = millis() - start_timer;
-    Serial.print("Total time elapsed: ");
-    Serial.println(time_elapsed);
-    Serial.println(" seconds");
-    i++;
   }
 }
 

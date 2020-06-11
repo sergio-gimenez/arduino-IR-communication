@@ -15,21 +15,13 @@
 #define PKT_LENGTH 4 //In bytes
 #define I2C_ADDR 8
 #define PKT_LENGTH 4 //In bytes
-#define ACK 0x06 //ACK character 
-#define EXPERIMENT_ITERATIONS 200
-
+#define ACK 0x06 //ASCII ACK character
+#define EXPERIMENT_ITERATIONS 300000
 
 long randNumber;
-int tx_buf[4];
-byte buf_to_send[4];
-int splitted_msg[4];
+byte splitted_msg[4];
 int i2c_bytes_count;
 long iterations_counter = 0;
-
-uint8_t timer2top(unsigned long freq);
-void get_ir_tx_ready();
-void send_i2c_pkt (long i2c_randNumber);
-
 
 void setup() {
   Wire.begin();
@@ -37,7 +29,7 @@ void setup() {
   get_ir_tx_ready();
 
   /*
-     If analog input pin 0 is unconnected, random analog
+     As analog input pin 0 is unconnected, random analog
      noise will cause the call to randomSeed() to generate
      different seed numbers each time the sketch runs.
      randomSeed() will then shuffle the random function.
@@ -45,30 +37,43 @@ void setup() {
   randomSeed(analogRead(0));
 
   // Delay in order to wait for the receiver
-  delay(5000);
+  delay(3000);
+
 
   // Send first data frame
+  
   randNumber = random(MAX_32_BIT_VALUE);
   send_i2c_pkt(randNumber);
-  Serial.println(randNumber);
+
+  for (int i = 0; i < PKT_LENGTH; i++) {
+    //extract the right-most byte of the shifted variable
+    splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
+  }
+  Serial.write(splitted_msg, PKT_LENGTH);
+
 }
 
 
 void loop() {
   if (iterations_counter < EXPERIMENT_ITERATIONS) {
+    // Wait for ACK before sending
+    if ((Serial.available() > 0) && (Serial.read() == ACK)) {
+      
+      randNumber = random(MAX_32_BIT_VALUE);
 
-    if (Serial.available() > 0) {
-      if (Serial.read() == ACK) {
-        randNumber = random(MAX_32_BIT_VALUE);
-        send_i2c_pkt(randNumber);
-        Serial.println(randNumber);
-        iterations_counter++;
+      send_i2c_pkt(randNumber);
+
+      for (int i = 0; i < PKT_LENGTH; i++) {
+        //extract the right-most byte of the shifted variable
+        splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
       }
+      Serial.write(splitted_msg, PKT_LENGTH);
+
+      iterations_counter++;
     }
-
   }
-
 }
+
 
 
 void send_i2c_pkt (long i2c_randNumber) {
@@ -88,12 +93,15 @@ void send_i2c_pkt (long i2c_randNumber) {
   }
 }
 
+
+
 // return TIMER2 TOP value per given desired frequency (Hz)
 uint8_t timer2top(unsigned long freq) {
   return ((byte)((unsigned long)SYSCLOCK / 2 / freq) - 1);
 }
 
 
+// Prepare arduino to send modulated UART data.
 void get_ir_tx_ready() {
   cbi(TCCR2A, COM2A1); // connect OC2A (COM2A0 = 1)
   sbi(TCCR2A, COM2A0);
