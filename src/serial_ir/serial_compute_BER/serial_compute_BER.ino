@@ -6,7 +6,7 @@
 #define ACK 0x06 //ASCII ACK character 
 
 long global_timer_start;
-
+boolean verbose = false;
 
 // IR VARIABLES \\
 byte rbuf[4];
@@ -47,25 +47,8 @@ void loop() {
   // Get IR message only if an I2C pkt has been previously received
   if (isI2CinBuf) {
 
-    if (!has_tx_started) {
-      global_timer_start = millis();
-    }
-    has_tx_started = true;
-
-    while (true) {
-      if (Serial.available() >= PKT_LENGTH) {
-        for (int i = 0; i < PKT_LENGTH; i++) {
-          msg.asBytes[i] = (byte)Serial.read();
-        }
-        //Debugging prints:
-//        Serial.print(" IR Received message = ");
-//        Serial.println(msg.asLong, HEX);
-//        Serial.println("\n");
-        break;
-      }
-    }
-
-
+    start_timer();
+    read_serial_IR_msg();
     received_msgs_count++;
 
     // Sum of all wrong bits in the transmission
@@ -73,8 +56,11 @@ void loop() {
 
     last_message_timestamp = millis();
 
-    isI2CinBuf = false;
     Serial.write(ACK);
+
+    isI2CinBuf = false;
+
+    
   }
 
 
@@ -92,6 +78,31 @@ void loop() {
   }
 }
 
+void start_timer() {
+  if (!has_tx_started) {
+    global_timer_start = millis();
+  }
+  has_tx_started = true;
+}
+
+// Read 4 bytes of the serial buffer.Blocking method until timeout.
+void read_serial_IR_msg() {
+  unsigned int ir_timeout = LAST_IR_MESSAGE_TIMEOUT*10;
+  while (ir_timeout--) {
+    if (Serial.available() >= PKT_LENGTH) {
+      for (int i = 0; i < PKT_LENGTH; i++) {
+        msg.asBytes[i] = (byte)Serial.read();
+      }
+      //Debugging prints:
+      if (verbose) {
+        Serial.print(" IR Received message = ");
+        Serial.println(msg.asLong, HEX);
+        Serial.println("\n");
+      }
+      break;
+    }
+  }
+}
 
 // Detect the errors in the message received and returns the
 // amount of errors in a message.
@@ -141,8 +152,10 @@ void handle_i2c_event() {
   if (isEOT) {
 
     // Debugging prints
-    //    Serial.print("I2C Received message = ");
-    //    Serial.println(i2c_msg, HEX);
+    if (verbose) {
+      Serial.print("I2C Received message = ");
+      Serial.println(i2c_msg, HEX);
+    }
 
     expected_message = i2c_msg;
 

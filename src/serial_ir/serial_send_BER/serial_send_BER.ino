@@ -16,7 +16,7 @@
 #define I2C_ADDR 8
 #define PKT_LENGTH 4 //In bytes
 #define ACK 0x06 //ASCII ACK character
-#define EXPERIMENT_ITERATIONS 300000
+#define EXPERIMENT_ITERATIONS 500000
 
 long randNumber;
 byte splitted_msg[4];
