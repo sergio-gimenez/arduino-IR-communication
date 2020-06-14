@@ -44,11 +44,11 @@ void loop() {
   if ( i == 0) {
     start_timer = millis();
   }
-  if (i < 200) {
+  //if (i < 200) {
     //randNumber = random(MAX_32_BIT_VALUE);
     Serial.println("AAAA");
     i++;
-  }
+  //}
   if ( i == 200) {
     time_elapsed = millis() - start_timer;
     Serial.print("Total time elapsed: ");
