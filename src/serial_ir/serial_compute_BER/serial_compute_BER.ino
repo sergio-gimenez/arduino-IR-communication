@@ -42,11 +42,10 @@ void setup()
   Serial.print("\nArduino is ready\n");
 }
 
-void loop() { 
+void loop() {
   // Get IR message only if an I2C pkt has been previously received
   if (isI2CinBuf) {
-    isI2CinBuf = false;    
-
+    isI2CinBuf = false;
 
     start_timer();
     read_serial_IR_msg();
@@ -59,7 +58,6 @@ void loop() {
     last_message_timestamp = millis();
 
     Serial.write(ACK);
-
   }
 
 

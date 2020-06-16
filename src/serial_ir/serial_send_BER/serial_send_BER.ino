@@ -1,6 +1,6 @@
 #include <Wire.h> // I2C library
 
-// defines for setting and clearing register bits
+// defines for setting and clearing register bitsfasibility
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
 #endif
@@ -17,11 +17,15 @@
 #define PKT_LENGTH 4 //In bytes
 #define ACK 0x06 //ASCII ACK character
 #define EXPERIMENT_ITERATIONS 500000
+#define IR_MESSAGE_TIMEOUT 50 // milliseconds
 
 long randNumber;
 byte splitted_msg[4];
 int i2c_bytes_count;
 long iterations_counter = 0;
+unsigned long ir_start_timer;
+unsigned long ir_time_elapsed;
+boolean isTimeoutOver = false;
 
 void setup() {
   Wire.begin();
@@ -41,7 +45,6 @@ void setup() {
 
 
   // Send first data frame
-  
   randNumber = random(MAX_32_BIT_VALUE);
   send_i2c_pkt(randNumber);
 
@@ -50,26 +53,37 @@ void setup() {
     splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
   }
   Serial.write(splitted_msg, PKT_LENGTH);
-
+  ir_start_timer = millis();
 }
 
 
 void loop() {
   if (iterations_counter < EXPERIMENT_ITERATIONS) {
-    // Wait for ACK before sending
-    if ((Serial.available() > 0) && (Serial.read() == ACK)) {
+
+    // Wait for ACK before sending or no ACK arrives and then the message is
+    // considered lost and the transmission keeps going.
+    while (true) {
       
-      randNumber = random(MAX_32_BIT_VALUE);
-
-      send_i2c_pkt(randNumber);
-
-      for (int i = 0; i < PKT_LENGTH; i++) {
-        //extract the right-most byte of the shifted variable
-        splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
+      if ((millis() - ir_start_timer) > IR_MESSAGE_TIMEOUT) {
+        isTimeoutOver = true;
       }
-      Serial.write(splitted_msg, PKT_LENGTH);
+      
+      if ((Serial.available() > 0) && (Serial.read() == ACK) || isTimeoutOver) {
+        randNumber = random(MAX_32_BIT_VALUE);
 
-      iterations_counter++;
+        send_i2c_pkt(randNumber);
+
+        for (int i = 0; i < PKT_LENGTH; i++) {
+          //extract the right-most byte of the shifted variable
+          splitted_msg[i] = ((randNumber >> (i * 8)) & 0xFF);
+        }
+        Serial.write(splitted_msg, PKT_LENGTH);
+
+        iterations_counter++;
+        ir_start_timer = millis();
+        isTimeoutOver = false;
+        break;
+      }
     }
   }
 }
