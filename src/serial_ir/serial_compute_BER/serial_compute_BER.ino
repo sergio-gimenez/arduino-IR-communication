@@ -1,10 +1,10 @@
 #include <Wire.h> // I2C library
 
-#define LAST_IR_MESSAGE_TIMEOUT 5000
+#define LAST_IR_MESSAGE_TIMEOUT 5000 // millisecons
 #define PKT_LENGTH 4 // In bytes
 #define I2C_BUS_ADDRESS 8
 #define ACK 0x06 //ASCII ACK character 
-
+#define IR_MESSAGE_TIMEOUT 50 //milliseconds
 long global_timer_start;
 boolean verbose = false;
 
@@ -43,9 +43,9 @@ void setup()
 }
 
 void loop() {
-
   // Get IR message only if an I2C pkt has been previously received
   if (isI2CinBuf) {
+    isI2CinBuf = false;
 
     start_timer();
     read_serial_IR_msg();
@@ -53,14 +53,11 @@ void loop() {
 
     // Sum of all wrong bits in the transmission
     wrong_bits_sum += get_wrong_bits(expected_message, msg.asLong);
+    Serial.println(wrong_bits_sum);
 
     last_message_timestamp = millis();
 
     Serial.write(ACK);
-
-    isI2CinBuf = false;
-
-    
   }
 
 
@@ -87,15 +84,16 @@ void start_timer() {
 
 // Read 4 bytes of the serial buffer.Blocking method until timeout.
 void read_serial_IR_msg() {
-  unsigned int ir_timeout = LAST_IR_MESSAGE_TIMEOUT*10;
-  while (ir_timeout--) {
+  long serial_ir_msg_start_time = millis();
+  while ((millis() - serial_ir_msg_start_time) < IR_MESSAGE_TIMEOUT) {
     if (Serial.available() >= PKT_LENGTH) {
       for (int i = 0; i < PKT_LENGTH; i++) {
         msg.asBytes[i] = (byte)Serial.read();
       }
       //Debugging prints:
       if (verbose) {
-        Serial.print(" IR Received message = ");
+        //Serial.print(" IR Received message = ");
+        Serial.print("IR|");
         Serial.println(msg.asLong, HEX);
         Serial.println("\n");
       }
@@ -153,7 +151,8 @@ void handle_i2c_event() {
 
     // Debugging prints
     if (verbose) {
-      Serial.print("I2C Received message = ");
+      //Serial.print("I2C Received message = ");
+      Serial.print("I2|");
       Serial.println(i2c_msg, HEX);
     }
 
@@ -186,9 +185,6 @@ void print_experiment_report() {
 
   Serial.print("\n- Average BER for the transmission: ");
   Serial.println(BER, 20);
-  Serial.println("    * Disclaimer: This BER value might be wrong, arduino doesn't deal good with big decimal numbers. ");
-  Serial.println("      Anyhow the BER value is just: BER = total_wrong_bits / total_bits_received;");
-
 
   Serial.print("\n- Total time elapsed: ");
   Serial.print((last_message_timestamp - global_timer_start));
