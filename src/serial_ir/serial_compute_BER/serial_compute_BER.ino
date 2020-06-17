@@ -4,9 +4,9 @@
 #define PKT_LENGTH 4 // In bytes
 #define I2C_BUS_ADDRESS 8
 #define ACK 0x06 //ASCII ACK character 
-#define IR_MESSAGE_TIMEOUT 50 //milliseconds
+#define IR_MESSAGE_TIMEOUT 150 //milliseconds
 long global_timer_start;
-boolean verbose = false;
+boolean verbose = true;
 
 // IR VARIABLES \\
 byte rbuf[4];
@@ -42,23 +42,39 @@ void setup()
   Serial.print("\nArduino is ready\n");
 }
 
+
+
 void loop() {
+
   // Get IR message only if an I2C pkt has been previously received
   if (isI2CinBuf) {
+
+    // Set it to false now in order to avoid more I2C messages
+    // comming before reading the Serial buffer.
     isI2CinBuf = false;
 
-    start_timer();
+    start_global_timer();
+
     read_serial_IR_msg();
+
     received_msgs_count++;
 
     // Sum of all wrong bits in the transmission
     wrong_bits_sum += get_wrong_bits(expected_message, msg.asLong);
-    Serial.println(wrong_bits_sum);
+
+    // In case received some corrupted message, clear the serial buffer
+    serialFlush();
+
+    if (verbose)
+      Serial.println(wrong_bits_sum);
 
     last_message_timestamp = millis();
 
+    // Let the sender know that it can send the next frame
     Serial.write(ACK);
   }
+
+
 
 
   // Check if the timeout is over
@@ -75,17 +91,22 @@ void loop() {
   }
 }
 
-void start_timer() {
+
+
+void start_global_timer() {
   if (!has_tx_started) {
     global_timer_start = millis();
   }
   has_tx_started = true;
 }
 
+
+
 // Read 4 bytes of the serial buffer.Blocking method until timeout.
 void read_serial_IR_msg() {
   long serial_ir_msg_start_time = millis();
-  while ((millis() - serial_ir_msg_start_time) < IR_MESSAGE_TIMEOUT) {
+  while (true) {
+
     if (Serial.available() >= PKT_LENGTH) {
       for (int i = 0; i < PKT_LENGTH; i++) {
         msg.asBytes[i] = (byte)Serial.read();
@@ -94,13 +115,30 @@ void read_serial_IR_msg() {
       if (verbose) {
         //Serial.print(" IR Received message = ");
         Serial.print("IR|");
-        Serial.println(msg.asLong, HEX);
+        Serial.println(msg.asLong, DEC);
         Serial.println("\n");
       }
       break;
     }
+
+    // If timeout is over, then received message set arbitrarily to 0.
+    if ((millis() - serial_ir_msg_start_time) > IR_MESSAGE_TIMEOUT) {
+      msg.asLong = 0;
+      break;
+    }
   }
 }
+
+
+
+// Clear the serial buffer
+void serialFlush() {
+  while (Serial.available() > 0) {
+    char t = Serial.read();
+  }
+}
+
+
 
 // Detect the errors in the message received and returns the
 // amount of errors in a message.
@@ -123,6 +161,7 @@ long get_wrong_bits(long expected_msg, long received_msg)
   }
   return count;
 }
+
 
 
 // This function get 4 bytes from the I2C channel and saves them
@@ -153,7 +192,7 @@ void handle_i2c_event() {
     if (verbose) {
       //Serial.print("I2C Received message = ");
       Serial.print("I2|");
-      Serial.println(i2c_msg, HEX);
+      Serial.println(i2c_msg, DEC);
     }
 
     expected_message = i2c_msg;
@@ -166,6 +205,8 @@ void handle_i2c_event() {
     isI2CinBuf = true;
   }
 }
+
+
 
 void print_experiment_report() {
 
@@ -195,5 +236,4 @@ void print_experiment_report() {
   Serial.print(" i2c pacekts and ");
   Serial.print(received_msgs_count);
   Serial.println(" IR packets\n\n");
-
 }
