@@ -1,6 +1,9 @@
-# IR communication 
+# Low-cost IR Communication
 
-This is the very simple scenario I have so far. I have managed to send a 32 bits IR signal from a transmitter to a receiver.
+Here is the code repository for my final degree thesis. For all the details of the content of the work, please check the full thesis at: https://upcommons.upc.edu/handle/2117/329137.
+
+
+# A very very simple hands-on Arduino - Raspberry IR communication example 
 
 ![global_diagram](/docs/img/follow-up-23-3-diagram.png)
 
@@ -8,8 +11,6 @@ This is the very simple scenario I have so far. I have managed to send a 32 bits
 
 This is the whole simple-system schema:
 ![global_schema](/docs/img/follow-up-23-03-schema_bb.png)
-
-
 
 ### Transmitter
 
@@ -72,7 +73,7 @@ For the parameters of the pulse, I just took the most common values and it worke
 
 ### Receiver
 
-For the receiver, I use an **Arduino Uno Rev3** that Filippo borrowed me and a chinese **IR receiver (1838D)** that I bought in a shop close to Aristotle Square:
+For the receiver, I use an **Arduino Uno Rev3** and a chinese **IR receiver (1838D)**:
 
 ![arduino_rx](/docs/img/Rx_arduino.png)
 
